@@ -1,3 +1,14 @@
+# Speedrun (a fork of Anki)
+
+> **Speedrun** is a Desktop + Mobile study app built on this fork of Anki for **one
+> exam: the MCAT** (472-528). It adds three separately-reported scores (memory,
+> performance, readiness, each with a range) on top of Anki's shared Rust engine.
+> See **[SPEEDRUN.md](./SPEEDRUN.md)** for the project overview, license, and structure.
+> This fork keeps `upstream` pointed at [ankitects/anki](https://github.com/ankitects/anki);
+> full credit to Anki and its contributors. Modifications are AGPL-3.0-or-later.
+
+---
+
 # Anki
 
 [![Build Status](https://github.com/ankitects/anki/actions/workflows/ci.yml/badge.svg)](https://github.com/ankitects/anki/actions/workflows/ci.yml)

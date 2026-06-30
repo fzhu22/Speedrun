@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "rust-analyzer": {
+      "command": "C:\\Users\\frank\\.cargo\\bin\\rust-analyzer-mcp-server.exe",
+      "args": ["C:\\Users\\frank\\Documents\\Alpha\\Speedrun\\anki"],
+      "env": {
+        "RUST_ANALYZER_PATH": "C:\\Users\\frank\\.rustup\\toolchains\\stable-x86_64-pc-windows-gnu\\bin\\rust-analyzer.exe"
+      }
+    }
+  }
+}
