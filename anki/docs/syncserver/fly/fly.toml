@@ -1,0 +1,42 @@
+# Speedrun sync server on Fly.io, configured to stay effectively free.
+# Cost levers baked in (see SYNC.md "Keep it free" for the why):
+#   * one shared-cpu-1x / 256MB machine  -> cheapest VM
+#   * auto-stops to ZERO when idle        -> no compute billed while asleep
+#   * shared IPv4 only                    -> a dedicated IPv4 would add ~$2/mo
+#   * one small 1GB volume                -> ~$0.15/mo of storage, the only line item
+#
+# `app` and `primary_region` are rewritten by fly-deploy.ps1, or edit them here
+# and run the manual steps in SYNC.md.
+
+app = "speedrun-sync-frank-1vls"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  SYNC_HOST = "0.0.0.0"
+  SYNC_PORT = "8080"
+  SYNC_BASE = "/anki_data"
+
+# Persistent user data (collections + media the server merges between devices).
+[[mounts]]
+  source = "anki_data"
+  destination = "/anki_data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Sleep the machine when there is no traffic; wake it on the next sync.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 100
+    hard_limit = 250
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

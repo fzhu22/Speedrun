@@ -1,0 +1,275 @@
+{
+  "note": "Held-out, exam-style paraphrase items for the spec 7d / PRD AC4 paraphrase test. Each concept links to a base memory card via its concept_id (the base card carries tags 'concept::<id> paraphrase::source'). The build script tags every item here with: <section_tag> concept::<id> perf::paraphrase holdout::performance variant::<n>. These items are reworded to test the SAME principle in NEW words/scenarios so that card recall can be compared against performance on unseen items.",
+  "concepts": [
+    {
+      "concept_id": "aa_charge",
+      "section_tag": "MCAT::BioBiochem::1A::AminoAcids",
+      "base_principle": "Lys, Arg, His carry positive side-chain charge near physiological pH.",
+      "items": [
+        { "variant": 1, "stem": "A drug must form an ionic bond with a phosphate group on its protein target at blood pH. A side chain of which residue is best suited?", "options": { "A": "Glutamate", "B": "Lysine", "C": "Valine", "D": "Serine" }, "correct": "B", "rationale": "Lysine is positively charged at pH 7.4 and pairs electrostatically with the negative phosphate." },
+        { "variant": 2, "stem": "At pH 7.4, which residue's side chain carries a net positive charge?", "options": { "A": "Aspartate", "B": "Phenylalanine", "C": "Arginine", "D": "Threonine" }, "correct": "C", "rationale": "Arginine's guanidinium side chain is protonated and positive at physiological pH." }
+      ]
+    },
+    {
+      "concept_id": "aa_hydrophobic",
+      "section_tag": "MCAT::BioBiochem::1A::ProteinFolding",
+      "base_principle": "Nonpolar residues bury in the core via the hydrophobic effect.",
+      "items": [
+        { "variant": 1, "stem": "In a globular cytosolic protein, where are leucine and isoleucine side chains most likely located?", "options": { "A": "On the solvent-exposed surface", "B": "Buried in the hydrophobic core", "C": "Coordinating a metal ion", "D": "Forming an ion pair with water" }, "correct": "B", "rationale": "Nonpolar side chains minimize contact with water by packing into the interior." },
+        { "variant": 2, "stem": "A mutation replaces a buried valine with glutamate. What is the most likely consequence?", "options": { "A": "Stabilizes the core", "B": "Destabilizes the fold by placing a charge in the nonpolar interior", "C": "No structural effect", "D": "Forms a new disulfide bond" }, "correct": "B", "rationale": "Introducing a charged residue into the hydrophobic core is energetically unfavorable and destabilizing." }
+      ]
+    },
+    {
+      "concept_id": "enzyme_km",
+      "section_tag": "MCAT::BioBiochem::1A::EnzymeKinetics",
+      "base_principle": "Km is [S] at half Vmax; lower Km means higher apparent affinity.",
+      "items": [
+        { "variant": 1, "stem": "Enzyme X has Km = 2 mM and enzyme Y has Km = 20 mM for the same substrate. Which enzyme has the higher apparent affinity?", "options": { "A": "Enzyme X", "B": "Enzyme Y", "C": "They are equal", "D": "Cannot be determined" }, "correct": "A", "rationale": "A lower Km means half-maximal velocity is reached at lower substrate concentration, i.e., higher apparent affinity." },
+        { "variant": 2, "stem": "When the substrate concentration equals Km, the reaction velocity equals what fraction of Vmax?", "options": { "A": "One quarter", "B": "One half", "C": "Three quarters", "D": "Vmax" }, "correct": "B", "rationale": "By definition Km is the substrate concentration at half of Vmax." }
+      ]
+    },
+    {
+      "concept_id": "competitive_inhibition",
+      "section_tag": "MCAT::BioBiochem::1A::EnzymeKinetics",
+      "base_principle": "Competitive inhibitors raise apparent Km; Vmax unchanged.",
+      "items": [
+        { "variant": 1, "stem": "A competitive inhibitor is added, then substrate is raised to a large excess. What happens to Vmax?", "options": { "A": "Decreases", "B": "Unchanged", "C": "Increases", "D": "Falls to zero" }, "correct": "B", "rationale": "Excess substrate outcompetes a competitive inhibitor, so Vmax is recovered." },
+        { "variant": 2, "stem": "A molecule resembling the substrate reversibly occupies the active site. How is the apparent Km affected?", "options": { "A": "Increased", "B": "Decreased", "C": "Unchanged", "D": "Becomes negative" }, "correct": "A", "rationale": "Competitive inhibition raises the apparent Km because more substrate is needed to reach half Vmax." }
+      ]
+    },
+    {
+      "concept_id": "dna_antiparallel",
+      "section_tag": "MCAT::BioBiochem::1B::DNA",
+      "base_principle": "DNA strands are antiparallel and complementary.",
+      "items": [
+        { "variant": 1, "stem": "One DNA strand reads 5'-ATGC-3'. Written 5' to 3', the complementary strand is:", "options": { "A": "5'-GCAT-3'", "B": "5'-TACG-3'", "C": "5'-ATGC-3'", "D": "5'-CGTA-3'" }, "correct": "A", "rationale": "The antiparallel complement of 5'-ATGC-3' is 3'-TACG-5', which written 5' to 3' is GCAT." },
+        { "variant": 2, "stem": "Describing the two strands of a DNA duplex as 'antiparallel' means that:", "options": { "A": "Both run 5' to 3' in the same direction", "B": "They run in opposite 5'-to-3' directions", "C": "They have identical sequences", "D": "Both are made of RNA" }, "correct": "B", "rationale": "Antiparallel means the strands point in opposite 5'-to-3' directions." }
+      ]
+    },
+    {
+      "concept_id": "transcription_direction",
+      "section_tag": "MCAT::BioBiochem::1B::Replication",
+      "base_principle": "Polymerases synthesize 5' to 3', adding to the 3'-OH.",
+      "items": [
+        { "variant": 1, "stem": "RNA polymerase reads the template strand in which direction and synthesizes RNA in which direction?", "options": { "A": "Reads 5'->3', synthesizes 3'->5'", "B": "Reads 3'->5', synthesizes 5'->3'", "C": "Reads and synthesizes 5'->3'", "D": "Reads and synthesizes 3'->5'" }, "correct": "B", "rationale": "Polymerase reads template 3'->5' and builds the new strand 5'->3'." },
+        { "variant": 2, "stem": "During strand synthesis, a new nucleotide is added to which end of the growing chain?", "options": { "A": "The 5' phosphate end", "B": "The free 3'-OH end", "C": "Either end equally", "D": "The 5' cap" }, "correct": "B", "rationale": "Nucleotides are added to the free 3'-hydroxyl, giving 5'->3' synthesis." }
+      ]
+    },
+    {
+      "concept_id": "codon_degeneracy",
+      "section_tag": "MCAT::BioBiochem::1B::Translation",
+      "base_principle": "The genetic code is degenerate (redundant).",
+      "items": [
+        { "variant": 1, "stem": "A single-base substitution in the third codon position often leaves the protein unchanged. The best explanation is that:", "options": { "A": "Introns are removed", "B": "The genetic code is degenerate", "C": "Proofreading reverses it", "D": "mRNA is edited" }, "correct": "B", "rationale": "Multiple codons encode the same amino acid, so many third-position changes are silent." },
+        { "variant": 2, "stem": "There are 61 sense codons but only 20 amino acids. This directly implies that:", "options": { "A": "Many amino acids are specified by more than one codon", "B": "Each amino acid has exactly one codon", "C": "Codons overlap", "D": "Each codon encodes two amino acids" }, "correct": "A", "rationale": "More codons than amino acids means redundancy (degeneracy)." }
+      ]
+    },
+    {
+      "concept_id": "glycolysis_atp",
+      "section_tag": "MCAT::BioBiochem::1D::Glycolysis",
+      "base_principle": "Glycolysis nets 2 ATP per glucose.",
+      "items": [
+        { "variant": 1, "stem": "What is the NET ATP yield from glycolysis of one glucose by substrate-level phosphorylation?", "options": { "A": "0", "B": "2", "C": "4", "D": "36" }, "correct": "B", "rationale": "Four ATP are produced and two are invested, for a net of two." },
+        { "variant": 2, "stem": "Glycolysis invests 2 ATP and produces 4 ATP. The net gain is:", "options": { "A": "6", "B": "4", "C": "2", "D": "0" }, "correct": "C", "rationale": "4 produced minus 2 invested equals a net of 2 ATP." }
+      ]
+    },
+    {
+      "concept_id": "oxidative_phosphorylation",
+      "section_tag": "MCAT::BioBiochem::1D::OxPhos",
+      "base_principle": "O2 is the final electron acceptor of the ETC.",
+      "items": [
+        { "variant": 1, "stem": "Cyanide blocks complex IV so oxygen can no longer accept electrons. The immediate effect on the electron transport chain is that:", "options": { "A": "ATP synthesis increases", "B": "Electrons back up and the proton gradient collapses", "C": "More oxygen is consumed", "D": "Glycolysis halts first" }, "correct": "B", "rationale": "Without the terminal acceptor, the chain cannot pass electrons, the gradient dissipates, and ATP synthesis stops." },
+        { "variant": 2, "stem": "The terminal electron acceptor of the mitochondrial electron transport chain is:", "options": { "A": "NAD+", "B": "Pyruvate", "C": "O2", "D": "CO2" }, "correct": "C", "rationale": "Oxygen accepts electrons at complex IV and is reduced to water." }
+      ]
+    },
+    {
+      "concept_id": "membrane_fluidity",
+      "section_tag": "MCAT::BioBiochem::2A::Membrane",
+      "base_principle": "Cholesterol buffers fluidity; unsaturation increases it.",
+      "items": [
+        { "variant": 1, "stem": "At low temperature, cholesterol affects a phospholipid membrane by:", "options": { "A": "Increasing fluidity by preventing tight packing", "B": "Freezing it solid", "C": "Removing phospholipids", "D": "Adding net charge" }, "correct": "A", "rationale": "Cholesterol prevents fatty-acid tails from packing tightly in the cold, maintaining fluidity." },
+        { "variant": 2, "stem": "Replacing saturated phospholipid tails with unsaturated (kinked) tails will:", "options": { "A": "Decrease membrane fluidity", "B": "Increase membrane fluidity", "C": "Have no effect", "D": "Make the membrane impermeable" }, "correct": "B", "rationale": "Kinks from double bonds prevent tight packing, raising fluidity." }
+      ]
+    },
+    {
+      "concept_id": "sodium_potassium_pump",
+      "section_tag": "MCAT::BioBiochem::2A::Transport",
+      "base_principle": "Na+/K+ ATPase: 3 Na+ out, 2 K+ in per ATP.",
+      "items": [
+        { "variant": 1, "stem": "Per cycle, the Na+/K+ ATPase moves:", "options": { "A": "2 Na+ in, 3 K+ out", "B": "3 Na+ out, 2 K+ in", "C": "1 Na+ out, 1 K+ in", "D": "3 K+ out, 3 Na+ in" }, "correct": "B", "rationale": "It exports 3 sodium and imports 2 potassium ions per ATP hydrolyzed." },
+        { "variant": 2, "stem": "A toxin halts the Na+/K+ ATPase. Over time the resting membrane potential will:", "options": { "A": "Become more negative", "B": "Run down toward depolarization as the gradients dissipate", "C": "Be unchanged", "D": "Hyperpolarize indefinitely" }, "correct": "B", "rationale": "Loss of pumping collapses the ion gradients that maintain the resting potential." }
+      ]
+    },
+    {
+      "concept_id": "mitosis_meiosis",
+      "section_tag": "MCAT::BioBiochem::2C::CellDivision",
+      "base_principle": "Meiosis yields four haploid, varied cells with recombination.",
+      "items": [
+        { "variant": 1, "stem": "Which process yields four genetically distinct haploid cells?", "options": { "A": "Mitosis", "B": "Meiosis", "C": "Binary fission", "D": "Cytokinesis alone" }, "correct": "B", "rationale": "Meiosis halves ploidy and generates variation, producing four distinct haploid cells." },
+        { "variant": 2, "stem": "Crossing over and independent assortment occur during:", "options": { "A": "Mitosis", "B": "Meiosis", "C": "S phase", "D": "G2 phase" }, "correct": "B", "rationale": "Both diversity-generating events occur in meiosis (prophase/metaphase I)." }
+      ]
+    },
+    {
+      "concept_id": "projectile",
+      "section_tag": "MCAT::ChemPhys::4A::Kinematics",
+      "base_principle": "Horizontal and vertical motion are independent.",
+      "items": [
+        { "variant": 1, "stem": "A ball is thrown horizontally off a cliff at the same instant another is dropped from the same height. Ignoring air resistance, which lands first?", "options": { "A": "The thrown ball", "B": "The dropped ball", "C": "They land at the same time", "D": "It depends on the throw speed" }, "correct": "C", "rationale": "Vertical motion is independent of horizontal motion; both have the same vertical drop." },
+        { "variant": 2, "stem": "For a projectile with no air resistance, the horizontal component of velocity during flight:", "options": { "A": "Increases", "B": "Decreases", "C": "Stays constant", "D": "Reverses direction" }, "correct": "C", "rationale": "No horizontal force acts, so horizontal velocity is constant." }
+      ]
+    },
+    {
+      "concept_id": "bernoulli",
+      "section_tag": "MCAT::ChemPhys::4B::Fluids",
+      "base_principle": "Faster fluid flow corresponds to lower pressure.",
+      "items": [
+        { "variant": 1, "stem": "Blood flows through a narrowed (stenotic) arterial segment. Compared with the wider region, in the narrow region the speed and the pressure are:", "options": { "A": "Higher speed; higher pressure", "B": "Higher speed; lower pressure", "C": "Lower speed; lower pressure", "D": "Lower speed; higher pressure" }, "correct": "B", "rationale": "Continuity raises speed in the narrow region; Bernoulli then predicts lower pressure there." },
+        { "variant": 2, "stem": "Air moves faster over the top of an airplane wing than beneath it. The pressure on the top surface is therefore:", "options": { "A": "Higher", "B": "Lower", "C": "Equal", "D": "Zero" }, "correct": "B", "rationale": "Higher speed along a streamline corresponds to lower pressure (Bernoulli)." }
+      ]
+    },
+    {
+      "concept_id": "ideal_gas",
+      "section_tag": "MCAT::ChemPhys::4B::Gases",
+      "base_principle": "PV = nRT; P and V inversely related at constant T.",
+      "items": [
+        { "variant": 1, "stem": "At constant temperature, a fixed gas sample's volume is halved. Its pressure:", "options": { "A": "Halves", "B": "Doubles", "C": "Is unchanged", "D": "Quadruples" }, "correct": "B", "rationale": "Boyle's law: P and V are inversely proportional at constant T and n." },
+        { "variant": 2, "stem": "Per the ideal gas law, doubling the absolute temperature at constant pressure does what to the volume?", "options": { "A": "Halves it", "B": "Doubles it", "C": "Leaves it unchanged", "D": "Quarters it" }, "correct": "B", "rationale": "At constant P and n, volume is proportional to absolute temperature." }
+      ]
+    },
+    {
+      "concept_id": "ohms_law",
+      "section_tag": "MCAT::ChemPhys::4C::Circuits",
+      "base_principle": "V = IR.",
+      "items": [
+        { "variant": 1, "stem": "A 12 V battery drives 3 A through a single resistor. The resistance is:", "options": { "A": "0.25 ohm", "B": "4 ohm", "C": "36 ohm", "D": "15 ohm" }, "correct": "B", "rationale": "R = V/I = 12/3 = 4 ohm." },
+        { "variant": 2, "stem": "Holding the voltage constant, doubling a resistor's resistance changes the current to:", "options": { "A": "Double", "B": "Half", "C": "Unchanged", "D": "Quadruple" }, "correct": "B", "rationale": "I = V/R, so doubling R halves the current." }
+      ]
+    },
+    {
+      "concept_id": "half_life",
+      "section_tag": "MCAT::ChemPhys::4E::NuclearDecay",
+      "base_principle": "Each half-life halves the remaining amount.",
+      "items": [
+        { "variant": 1, "stem": "A radioisotope has a half-life of 8 days. After 24 days, what fraction of the original remains?", "options": { "A": "1/2", "B": "1/3", "C": "1/8", "D": "1/16" }, "correct": "C", "rationale": "24 days is 3 half-lives; (1/2)^3 = 1/8." },
+        { "variant": 2, "stem": "Starting with 100 g of an isotope whose half-life is 5 years, how much remains after 10 years?", "options": { "A": "50 g", "B": "25 g", "C": "75 g", "D": "12.5 g" }, "correct": "B", "rationale": "10 years is 2 half-lives; 100 -> 50 -> 25 g." }
+      ]
+    },
+    {
+      "concept_id": "ph_strong_acid",
+      "section_tag": "MCAT::ChemPhys::5A::AcidBase",
+      "base_principle": "Strong acids fully dissociate; pH = -log[H+].",
+      "items": [
+        { "variant": 1, "stem": "What is the pH of 0.001 M HCl?", "options": { "A": "1", "B": "2", "C": "3", "D": "11" }, "correct": "C", "rationale": "HCl fully dissociates, so [H+] = 1e-3 and pH = 3." },
+        { "variant": 2, "stem": "A 0.01 M NaOH solution has a pH of:", "options": { "A": "2", "B": "7", "C": "12", "D": "14" }, "correct": "C", "rationale": "pOH = -log(0.01) = 2, so pH = 14 - 2 = 12." }
+      ]
+    },
+    {
+      "concept_id": "buffer_henderson",
+      "section_tag": "MCAT::ChemPhys::5A::Buffers",
+      "base_principle": "pH = pKa + log([A-]/[HA]); buffer best near pKa.",
+      "items": [
+        { "variant": 1, "stem": "An acetate buffer (pKa 4.76) contains equal concentrations of acetic acid and acetate. Its pH is approximately:", "options": { "A": "2.4", "B": "4.76", "C": "7.0", "D": "9.5" }, "correct": "B", "rationale": "When [A-] = [HA], log(1) = 0, so pH = pKa." },
+        { "variant": 2, "stem": "To build a buffer centered at pH 7.4, you should choose a weak acid with a pKa:", "options": { "A": "Near 1", "B": "Near 7.4", "C": "Near 13", "D": "It does not matter" }, "correct": "B", "rationale": "Buffering capacity is greatest within about 1 unit of the pKa, so pick pKa near the target pH." }
+      ]
+    },
+    {
+      "concept_id": "sn1_sn2",
+      "section_tag": "MCAT::ChemPhys::5D::Substitution",
+      "base_principle": "SN1 (tertiary, racemization) vs SN2 (primary, inversion).",
+      "items": [
+        { "variant": 1, "stem": "A tertiary alkyl halide in a polar protic solvent with a weak nucleophile most likely reacts by:", "options": { "A": "SN2", "B": "SN1", "C": "E2 exclusively", "D": "No reaction" }, "correct": "B", "rationale": "Tertiary substrates stabilize carbocations; polar protic solvent and weak nucleophile favor SN1." },
+        { "variant": 2, "stem": "An SN2 reaction occurring at a stereocenter produces:", "options": { "A": "Retention of configuration", "B": "Inversion of configuration", "C": "A racemic mixture", "D": "No stereochemical change" }, "correct": "B", "rationale": "Backside attack in SN2 inverts the stereocenter (Walden inversion)." }
+      ]
+    },
+    {
+      "concept_id": "catalyst_keq",
+      "section_tag": "MCAT::ChemPhys::5E::Catalysis",
+      "base_principle": "Catalysts lower Ea but do not change Keq or dG.",
+      "items": [
+        { "variant": 1, "stem": "Adding a catalyst to a reaction already at equilibrium will:", "options": { "A": "Shift it toward products", "B": "Shift it toward reactants", "C": "Not change the position of equilibrium", "D": "Increase Keq" }, "correct": "C", "rationale": "Catalysts speed forward and reverse rates equally, leaving the equilibrium position and Keq unchanged." },
+        { "variant": 2, "stem": "An enzyme accelerates a reaction by:", "options": { "A": "Increasing Keq", "B": "Lowering the activation energy", "C": "Making dG more negative", "D": "Shifting equilibrium toward products" }, "correct": "B", "rationale": "Enzymes lower activation energy; thermodynamics (dG, Keq) are unchanged." }
+      ]
+    },
+    {
+      "concept_id": "le_chatelier",
+      "section_tag": "MCAT::ChemPhys::5E::Equilibrium",
+      "base_principle": "Systems shift to counteract an imposed change.",
+      "items": [
+        { "variant": 1, "stem": "For N2 + 3 H2 <-> 2 NH3, continuously removing NH3 as it forms will:", "options": { "A": "Shift the equilibrium left", "B": "Shift the equilibrium right (make more NH3)", "C": "Cause no change", "D": "Stop the reaction" }, "correct": "B", "rationale": "Removing a product shifts the equilibrium toward products to replace it." },
+        { "variant": 2, "stem": "Increasing pressure by decreasing volume on a gas-phase equilibrium shifts it toward:", "options": { "A": "The side with more moles of gas", "B": "The side with fewer moles of gas", "C": "Neither side", "D": "The liquid phase" }, "correct": "B", "rationale": "The system reduces pressure by favoring the side with fewer gas moles." }
+      ]
+    },
+    {
+      "concept_id": "weber_law",
+      "section_tag": "MCAT::PsychSoc::6A::Psychophysics",
+      "base_principle": "JND is a constant proportion of the stimulus.",
+      "items": [
+        { "variant": 1, "stem": "You can just detect a 2 g increase added to a 100 g weight. On a 200 g weight, the just-noticeable increase will be about:", "options": { "A": "1 g", "B": "2 g", "C": "4 g", "D": "0.5 g" }, "correct": "C", "rationale": "Weber's law keeps the ratio constant (2%), so 2% of 200 g is 4 g." },
+        { "variant": 2, "stem": "Weber's law states that the just-noticeable difference is:", "options": { "A": "A fixed absolute amount", "B": "A constant proportion of the stimulus", "C": "Always zero", "D": "Unrelated to the stimulus" }, "correct": "B", "rationale": "The JND scales as a constant fraction of the baseline stimulus intensity." }
+      ]
+    },
+    {
+      "concept_id": "signal_detection",
+      "section_tag": "MCAT::PsychSoc::6A::SignalDetection",
+      "base_principle": "Criterion shifts trade off hits and false alarms.",
+      "items": [
+        { "variant": 1, "stem": "A radiologist becomes more willing to call ambiguous scans 'positive.' This lowered criterion will increase:", "options": { "A": "Misses only", "B": "Both hits and false alarms", "C": "Correct rejections", "D": "Neither" }, "correct": "B", "rationale": "A more liberal criterion increases both true positives (hits) and false positives (false alarms)." },
+        { "variant": 2, "stem": "Reporting that a tumor is present when in fact none is present is a:", "options": { "A": "Hit", "B": "Miss", "C": "False alarm", "D": "Correct rejection" }, "correct": "C", "rationale": "Saying 'signal' when there is none is a false alarm." }
+      ]
+    },
+    {
+      "concept_id": "working_memory",
+      "section_tag": "MCAT::PsychSoc::6B::Memory",
+      "base_principle": "Working memory holds about 7 plus or minus 2 items; chunking helps.",
+      "items": [
+        { "variant": 1, "stem": "Grouping a 10-digit phone number into three chunks improves recall mainly by:", "options": { "A": "Expanding sensory memory", "B": "Working within the ~7 plus or minus 2 capacity through chunking", "C": "Erasing long-term memory", "D": "Engaging the cerebellum" }, "correct": "B", "rationale": "Chunking packages items so the limited-capacity store holds more information." },
+        { "variant": 2, "stem": "Short-term/working memory capacity is best estimated as about:", "options": { "A": "2 items", "B": "7 plus or minus 2 items", "C": "50 items", "D": "Unlimited" }, "correct": "B", "rationale": "Miller's classic estimate is about seven plus or minus two items." }
+      ]
+    },
+    {
+      "concept_id": "classical_vs_operant",
+      "section_tag": "MCAT::PsychSoc::7A::Learning",
+      "base_principle": "Classical pairs stimuli; operant uses consequences.",
+      "items": [
+        { "variant": 1, "stem": "A dog salivates to a bell that was previously paired with food. The bell is the:", "options": { "A": "Unconditioned stimulus", "B": "Conditioned stimulus", "C": "Unconditioned response", "D": "Reinforcer" }, "correct": "B", "rationale": "After pairing, the formerly neutral bell becomes the conditioned stimulus." },
+        { "variant": 2, "stem": "Learning that is driven by the consequences (rewards or punishers) following a behavior is:", "options": { "A": "Classical conditioning", "B": "Operant conditioning", "C": "Habituation", "D": "Sensitization" }, "correct": "B", "rationale": "Operant conditioning changes behavior through its consequences." }
+      ]
+    },
+    {
+      "concept_id": "neg_reinforcement",
+      "section_tag": "MCAT::PsychSoc::7A::Learning",
+      "base_principle": "Negative reinforcement removes an aversive to increase behavior.",
+      "items": [
+        { "variant": 1, "stem": "A driver buckles the seatbelt to stop an annoying beep, and afterward buckles up more often. This is:", "options": { "A": "Positive punishment", "B": "Negative reinforcement", "C": "Positive reinforcement", "D": "Negative punishment" }, "correct": "B", "rationale": "Removing the aversive beep increases the behavior, the definition of negative reinforcement." },
+        { "variant": 2, "stem": "Taking aspirin removes a headache, making a person more likely to take aspirin in the future. This is an example of:", "options": { "A": "Punishment", "B": "Negative reinforcement", "C": "Extinction", "D": "Classical conditioning" }, "correct": "B", "rationale": "An aversive state is removed and the behavior increases, so it is negative reinforcement." }
+      ]
+    },
+    {
+      "concept_id": "conformity",
+      "section_tag": "MCAT::PsychSoc::7B::Conformity",
+      "base_principle": "Conformity to a unanimous majority; a dissenter reduces it.",
+      "items": [
+        { "variant": 1, "stem": "A participant gives an obviously wrong answer in order to match a unanimous group. This best illustrates:", "options": { "A": "Obedience", "B": "Conformity", "C": "The bystander effect", "D": "Groupthink" }, "correct": "B", "rationale": "Matching peers' behavior against one's own judgment is conformity (as in Asch)." },
+        { "variant": 2, "stem": "In Asch-style situations, conformity tends to decrease most when:", "options": { "A": "The group is unanimous", "B": "At least one other person dissents", "C": "The group is larger", "D": "The task is harder" }, "correct": "B", "rationale": "A single dissenting ally sharply reduces conformity pressure." }
+      ]
+    },
+    {
+      "concept_id": "fundamental_attribution",
+      "section_tag": "MCAT::PsychSoc::8B::Attribution",
+      "base_principle": "Overattribute others' behavior to disposition over situation.",
+      "items": [
+        { "variant": 1, "stem": "Seeing a coworker arrive late, you conclude they are lazy rather than considering traffic. This is:", "options": { "A": "Self-serving bias", "B": "The fundamental attribution error", "C": "Situational attribution", "D": "In-group bias" }, "correct": "B", "rationale": "Attributing another's behavior to disposition while ignoring situational causes is the FAE." },
+        { "variant": 2, "stem": "The fundamental attribution error involves overweighting ___ and underweighting ___ when explaining others' behavior.", "options": { "A": "Situation; disposition", "B": "Disposition; situation", "C": "Effort; ability", "D": "Mood; traits" }, "correct": "B", "rationale": "It overweights internal disposition and underweights external situation." }
+      ]
+    },
+    {
+      "concept_id": "social_facilitation",
+      "section_tag": "MCAT::PsychSoc::8C::GroupBehavior",
+      "base_principle": "Audiences help easy tasks but hurt hard/novel ones.",
+      "items": [
+        { "variant": 1, "stem": "An expert pianist performs a well-rehearsed piece even better in front of an audience. This illustrates:", "options": { "A": "Social loafing", "B": "Social facilitation", "C": "Deindividuation", "D": "Groupthink" }, "correct": "B", "rationale": "An audience improves performance on easy, well-learned tasks (social facilitation)." },
+        { "variant": 2, "stem": "A student struggles more on a brand-new, difficult problem when observed than when alone. Social facilitation predicts that an audience will:", "options": { "A": "Improve performance on hard tasks", "B": "Impair performance on difficult or novel tasks", "C": "Have no effect", "D": "Affect only group tasks" }, "correct": "B", "rationale": "Arousal from an audience impairs performance on difficult or unmastered tasks." }
+      ]
+    }
+  ]
+}

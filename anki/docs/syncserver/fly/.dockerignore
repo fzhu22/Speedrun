@@ -1,0 +1,4 @@
+# Keep the build context tiny: only the prebuilt binary + Dockerfile are needed.
+*
+!anki-sync-server
+!Dockerfile

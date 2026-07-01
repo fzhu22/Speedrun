@@ -1,0 +1,139 @@
+// Copyright: Ankitects Pty Ltd and contributors
+// License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+package anki.speedrun;
+
+import "anki/generic.proto";
+
+// Speedrun: shared backend for the readiness dashboard. The data behind the
+// dashboard (coverage map, per-section memory, the three scores, and the
+// prerequisite-aware study plan) is computed once here in the shared Rust engine
+// so the desktop (Python) and AnkiDroid (Kotlin) render an identical dashboard.
+service SpeedrunService {
+  // Read-only: the coverage/memory/plan data for the readiness dashboard.
+  rpc SpeedrunDashboard(SpeedrunDashboardRequest) returns (SpeedrunDashboardResponse);
+  // Review-time write: update the per-family support-fading ladder for one
+  // answered card and persist the resulting rung (as config + a syncable tag).
+  rpc SpeedrunRecordReview(SpeedrunRecordReviewRequest) returns (SpeedrunRecordReviewResponse);
+  // Read-only: whether a missed card should prompt for a disconfirmer.
+  rpc SpeedrunShouldPromptDisconfirmer(SpeedrunShouldPromptRequest) returns (SpeedrunShouldPromptResponse);
+  // Read-only: validate a student-authored disconfirmer ("" = ok).
+  rpc SpeedrunValidateDisconfirmer(SpeedrunValidateDisconfirmerRequest) returns (SpeedrunValidateDisconfirmerResponse);
+  // Write: build a Speedrun Disconfirmer note from a missed card.
+  rpc SpeedrunCreateDisconfirmer(SpeedrunCreateDisconfirmerRequest) returns (SpeedrunCreateDisconfirmerResponse);
+  // Write: create the Speedrun note types (Disconfirmer + Pretest) if missing.
+  rpc SpeedrunEnsureNotetypes(anki.generic.Empty) returns (anki.generic.Empty);
+}
+
+// Implicitly includes any of the above methods that are not listed in the
+// backend service.
+service BackendSpeedrunService {}
+
+message SpeedrunDashboardRequest {
+  // "::" tag prefix that scopes MCAT cards; defaults to "MCAT" when empty.
+  string tag_prefix = 1;
+  // A card counts as mastered at or above this FSRS retrievability; defaults to
+  // 0.9 when left at 0.
+  float mastered_retrievability = 2;
+  // Overall coverage must reach this fraction before readiness is allowed;
+  // defaults to 0.5 when left at 0.
+  float give_up_line = 3;
+  // Minimum graded reviews before readiness is allowed; defaults to 200 when 0.
+  uint32 min_reviews_for_readiness = 4;
+}
+
+message SpeedrunDashboardResponse {
+  // Per-section coverage and (abstaining) memory.
+  message SectionRow {
+    string section = 1;
+    string abbrev = 2;
+    float coverage = 3;
+    // Mean per-content-category recall; unset = abstain (no reviewed cards).
+    optional float memory = 4;
+    // Wilson score interval around `memory` (95%), treating recall as a success
+    // proportion over `reviewed_cards`, so the range narrows as more cards are
+    // reviewed. Both unset whenever `memory` abstains.
+    optional float memory_low = 5;
+    optional float memory_high = 6;
+    // Cards with a defined FSRS recall backing this section's memory estimate
+    // (the n behind the interval); 0 when memory abstains.
+    uint32 reviewed_cards = 7;
+  }
+  // A single recommended next thing to study.
+  message PlanItem {
+    string code = 1;
+    string title = 2;
+    // Current fading rung, "L3" (most support) .. "L0" (mastery).
+    string rung = 3;
+    string reason = 4;
+    float score = 5;
+    // True when this item was surfaced as a prerequisite of a higher-value leaf.
+    bool prerequisite = 6;
+  }
+  float overall_coverage = 1;
+  uint32 covered_leaves = 2;
+  uint32 total_leaves = 3;
+  repeated SectionRow sections = 4;
+  // coverage >= give_up_line AND total_reviews >= min_reviews_for_readiness.
+  bool readiness_allowed = 5;
+  float give_up_line = 6;
+  uint32 total_reviews = 7;
+  // Performance is always the abstain string for now (no exam-style items yet).
+  string performance_status = 8;
+  // The readiness abstain reason, or "allowed".
+  string readiness_status = 9;
+  repeated PlanItem plan = 10;
+}
+
+message SpeedrunRecordReviewRequest {
+  int64 card_id = 1;
+  // rating 1=Again, 2=Hard, 3=Good, 4=Easy; success = rating >= 2 (matches state.py).
+  uint32 rating = 2;
+}
+
+message SpeedrunRecordReviewResponse {
+  // The normalised concept-family key: the AAMC content-category CODE (e.g. "1A")
+  // the dashboard uses, or "" when the card is not on the ladder.
+  string family = 1;
+  // The resulting fading rung, "L3" (most support) .. "L0" (mastery).
+  string rung = 2;
+  // True when the rung advanced or regressed on this review.
+  bool changed = 3;
+}
+
+message SpeedrunShouldPromptRequest {
+  int64 card_id = 1;
+  uint32 rating = 2;
+  // In-session repeated misses; total misses = card.lapses + session_misses.
+  uint32 session_misses = 3;
+}
+
+message SpeedrunShouldPromptResponse {
+  bool should_prompt = 1;
+  bool struggling = 2;
+}
+
+message SpeedrunValidateDisconfirmerRequest {
+  string text = 1;
+  string answer = 2;
+}
+
+message SpeedrunValidateDisconfirmerResponse {
+  // A revise message, or "" when the disconfirmer is acceptable.
+  string problem = 1;
+}
+
+message SpeedrunCreateDisconfirmerRequest {
+  int64 card_id = 1;
+  string disconfirmer = 2;
+  string principle = 3;
+  bool assisted = 4;
+}
+
+message SpeedrunCreateDisconfirmerResponse {
+  int64 note_id = 1;
+}

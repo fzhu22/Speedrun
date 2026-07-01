@@ -1,0 +1,223 @@
+### TOPIC=Work, Energy & Power | SECTION=Chem/Phys | URL=https://www.wikipremed.com/mcat_course_code-010103.html | terms=22
+Energy||In physics and other sciences, energy is defined as a work one system does (or can do) on another system
+Kinetic energy||The kinetic energy of an object is the extra energy which it possesses due to its motion, defined as the work needed to accelerate the body from rest to its current speed.
+Potential energy||Potential energy is energy stored within a physical system.
+Mechanical work||Mechanical work is the amount of energy transferred by a force.
+Conservation of energy||The conservation of energy states that the total amount of energy in an isolated system remains constant, although it may change forms.
+Power||Power is the rate at which work is performed or energy is transmitted.  It is the amount of energy required or expended for a given unit of time.
+Joule||The joule is the SI unit of energy.
+Watt||The watt is the SI derived unit of power, equal to one joule per second.
+Simple machine||A simple machine is any device that only requires the application of a single force to work.
+Inclined plane||The inclined plane is a flat surface whose endpoints are at different heights.
+Lever||A lever is a rigid object that is used with an appropriate fulcrum or pivot point to multiply the mechanical force that can be applied to another object.
+Pulley||A pulley is a wheel with a groove along its edge for holding a rope or cable or belt.
+Mechanical advantage||Mechanical advantage is the factor by which a mechanism multiplies the force put into it.
+Electronvolt||The electronvolt is a unit of energy often used also in theoretical physics as a unit of mass. It is the amount of kinetic energy gained by a single unbound electron when it passes through an electrostatic potential difference of one volt, in vacuo.
+Conservative force||A conservative force is a force that does zero net work on a particle that travels along any closed path in an isolated system.
+Elastic energy||The elastic energy is the energy which causes or is released by the physical distortion of a solid or a fluid.
+Gravitational binding energy||The gravitational binding energy of an object consisting of loose material, held together by gravity alone, is the amount of energy required to pull all of the material apart, to infinity.
+Calorie||A calorie is a unit of measurement for energy equal to the amount of heat required to raise a gram of water one degree celsius. In most fields, it has been replaced by the joule.
+Foot-pound||The foot-pound force is an English unit of work or energy. It is the amount of energy expended when a force of one pound acts through a distance of 1 foot along the direction of the force.
+British thermal unit||The British thermal unit is a unit of energy used globally in the power, steam generation and heating and air conditioning industries.
+Mechanical efficiency||Mechanical efficiency is the effectiveness of a machine and is defined as the ratio of mechanical advantage to velocity ratio.
+Erg||An erg is the unit of energy and mechanical work in the centimetre-gram-second (CGS) system of units.
+
+### TOPIC=Modern Physics & Atomic Theory | SECTION=Chem/Phys | URL=https://www.wikipremed.com/mcat_course_code-010601.html | terms=143
+Special relativity||Einstein's special theory of relativity not only widened the postulate of relativity but added the second postulate - that all observers will always measure the speed of light to be the same no matter what their state of uniform linear motion is.
+Vacuum||A vacuum is a volume of space that is essentially empty of matter, such that its gaseous pressure is much less than standard atmospheric pressure.
+Albert Einstein||Albert Einstein (1879 - 1955) was a German-born theoretical physicist. He is best known for his theory of relativity and, specifically, mass-energy equivalence.
+Quantum||Quantum theory is the branch of physics which is based on quantization, which began in 1900 when Max Planck published his theory explaining the emission spectrum of black bodies.
+Principle of relativity||A principle of relativity is a criterion for judging physical theories, stating that they are inadequate if they do not prescribe the exact same laws of physics in certain similar situations.
+Speed of light||The speed of light in vacuum is the speed in a vacuum of anything having zero rest mass.
+General relativity||General relativity is the geometrical theory of gravitation published by Albert Einstein in 1915-16.
+Black hole||A black hole is a region of space in which the gravitational field is so powerful that nothing can escape after having fallen past the event horizon.
+Time dilation||Time dilation is the phenomenon whereby an observer finds that another's clock which is physically identical to their own is ticking at a slower rate as measured by their own clock.
+Length contraction||Length contraction, according to the special theory of relativity, is the physical phenomenon of a decrease in length detected by an observer in objects that travel at any non-zero velocity relative to that observer.
+Planck constant||The Planck constant is a physical constant that is used to describe the sizes of quanta, which plays a central role in the theory of quantum mechanics.
+Photoelectric effect||The photoelectric effect is a quantum electronic phenomenon in which electrons are emitted from matter after the absorption of energy from electromagnetic radiation.
+Antiparticle||Corresponding to most kinds of particles is an associated antiparticle with the same mass and opposite charges.
+Quark||The quark is one of the two basic constituents of matter in particle physics (the other is the lepton).
+Mass-energy equivalence||Mass-energy equivalence is the concept that any mass has an associated energy and vice versa.
+Event horizon||The event horizon is a general term for a boundary in spacetime, such as an area surrounding the black hole, beyond which events cannot affect an outside observer.
+de Broglie hypothesis||The de Broglie hypothesis is the statement that all matter (any object) has a wave-like nature, in other words, wave-particle duality.
+Uncertainty principle||The Heisenberg uncertainty principle gives a lower bound on the product of the standard deviations of position and momentum for a system, implying that it is impossible for a particle to have an arbitrarily well-defined position and momentum simultaneously.
+Standard Model||The Standard Model of particle physics is a quantum field theory developed between 1970 and 1973 which describes three of the four known fundamental interactions between the elementary particles that make up all matter.
+Positron||The positron is the antiparticle of the electron.
+Lorentz transformation||The Lorentz transformation converts between two different observers' measurements of space and time in a manner consistent with special relativity, where one observer is in constant motion with respect to the other.
+Relativity of simultaneity||The relativity of simultaneity is the concept that simultaneity is not absolute, but dependent on the observer.
+Compton scattering||Compton scattering is the decrease in energy of an X-ray or gamma ray photon, when it interacts with matter.
+Luminiferous ether||In the late 19th century, luminiferous ether, meaning light-bearing ether, was the term used to describe a medium for the propagation of light.  Today this theory is regarded as a superseded scientific theory.
+Planck's law||Planck's law describes the spectral radiance of electromagnetic radiation at all wavelengths from a black body at a certain temperature.
+Electron diffraction||Electron diffraction is a technique used to study matter by firing electrons at a sample and observing the resulting interference pattern.
+Schrödinger equation||Of central importance in non-relativistic quantum mechanics, the Schrödinger equation describes the space and time dependence of quantum mechanical systems.
+Elementary particle||An elementary particle or fundamental particle is a particle not known to have substructure; that is, it is not known to be made up of smaller particles.
+Weak interaction||The weak interaction is one of the four fundamental interactions of nature.  It is due to the exchange of the heavy W and Z bosons. Its most familiar effect is beta decay.
+Michelson-Morley experiment||The Michelson-Morley experiment, performed in 1887, is generally considered to be the first strong evidence against the theory of a luminiferous ether.
+Lorentz factor||The Lorentz factor appears in several equations in special relativity, including time dilation, length contraction, and the relativistic mass formula, generally represented with a shorthand symbol.
+Proper length||Proper length is an invariant quantity which is the rod distance between spacelike events in a frame of reference in which the events are simultaneous.
+Proper time||Proper time is time measured by a single clock between events that occur at the same place as the clock.
+Minkowski space||Minkowski spacetime is the mathematical setting in which Einstein's theory of special relativity is most conveniently formulated. In this setting the three ordinary dimensions of space are combined with a single dimension of time to form a four-dimensional manifold.
+World line||The world line of an object is the unique path of that object as it travels through 4-dimensional spacetime.
+Invariant mass||The invariant or intrinsic mass is a measurement or calculation of the mass of an object that is the same for all frames of reference.
+Relativistic Doppler effect||The relativistic Doppler effect is the change in frequency of light, caused by the relative motion of the source and the observer, when taking into account effects of the special theory of relativity.
+Work function||The work function is the minimum energy needed to remove an electron from a solid to a point immediately outside the solid surface.
+Light cone||A light cone is the pattern describing the temporal evolution of a flash of light in Minkowski spacetime.
+Minkowski diagram||A Minkowski diagram provides an illustration of the properties of space and time in the special theory of relativity, allowing a quantitative understanding of the corresponding phenomena like time dilation and length contraction without mathematical equations.
+
+### TOPIC=Acids & Bases | SECTION=Chem/Phys | URL=https://www.wikipremed.com/mcat_course_code-021200.html | terms=34
+Acid||An acid is traditionally considered any chemical compound that, when dissolved in water, gives a solution with a pH less than 7.0.
+Base||A base is most commonly thought of as a substance that can accept protons.
+pH||pH is a measure of the acidity or alkalinity of a solution.
+Strong acid||A strong acid is an acid that dissociates completely in an aqueous solution.
+Sodium hydroxide||Sodium hydroxide, also known as lye, caustic soda and sodium hydrate, is a caustic metallic base.
+Hydronium||Hydronium is the common name for the cation derived from protonation of water. It is the simplest type of an oxonium ion.
+Acid-base reaction||An acid-base reaction is a chemical reaction that occurs between a proton donor and a proton receiver.
+Lewis base||A Lewis base is any molecule or ion that can form a new coordinate covalent bond, by donating a pair of electrons.
+Hydrochloric acid||Hydrochloric acid is the aqueous solution of hydrogen chloride gas.
+Lewis acid||A Lewis acid can accept a pair of electrons and form a coordinate covalent bond.
+Weak base||A weak base is a chemical base that does not ionize fully in an aqueous solution
+Weak acid||A weak acid is an acid that does not ionize in solution to a significant extent.
+Alkali||An alkali is a basic, ionic salt of a group I or group II element.
+Sodium carbonate||Sodium carbonate is a sodium salt of carbonic acid.
+Acid dissociation constant||An acid dissociation constant is an equilibrium constant for the dissociation of a weak acid.
+Buffer solution||Buffer solutions are solutions that resist change in Hydronium ion and the hydroxide ion concentration (and consequently pH) upon addition of small amounts of acid or base, or upon dilution.
+Acid-base titration||An acid-base titration is a volumetric method in chemistry that allows quantitative analysis of the concentration of an unknown acid or base solution, making use of the neutralization reaction that occurs between acids and bases.
+Protonation||Protonation is the addition of a hydrogen ion to an atom, molecule, or ion.
+pH indicator||A pH indicator is a halochromic chemical compound that is added in small amounts to a solution so that the pH of the solution can be determined easily.
+Ammonia||Ammonia is a compound consisting of one nitrogen atom singly bound to three hydrogen atoms, normally encountered as a gas with a characteristic pungent odor.
+Hydrogen chloride||Hydrogen chloride has the formula HCl.
+Sulfuric acid||Sulfuric acid is a strong mineral acid once known as oil of vitriol.  Each molecule contains a sulfur atom, two hydrogen atoms and four oxygen atoms.
+Equivalence point||The equivalence point or stoichiometric point occurs during a chemical titration when the amount of titrant added is equivalent, or equal, to the amount of analyte present in the sample.
+Mineral acid||A mineral acid is an acid derived from inorganic substances by chemical reaction as opposed to organic acids.
+Neutralization||Neutralization is a chemical reaction, also called a water forming reaction, in which an acid and a base react and produce a salt and water.
+Oxoacid||An oxoacid is an acid which contains oxygen.
+Nitric acid||Nitric acid, also known as aqua fortis and spirit of nitre, is an aqueous solution of hydrogen nitrate.
+Phosphoric acid||Phosphoric acid, also known as orthophosphoric acid, is a mineral acid having a molecular structure with one phosphorus atom, four oxygen atoms, and three hydrogen atoms.
+Bicarbonate||A bicarbonate is an intermediate form in the deprotonation of carbonic acid.
+Superbase||A superbase is an extremely strong base.
+Superacid||A superacid is an acid with an acidity greater than that of 100% sulfuric acid.
+Proton affinity||The proton affinity of an anion or of a neutral atom or molecule is a measure of its gas-phase basicity.
+Hydron||Hydron is the general name for the positive hydrogen cation, used to reflect ions formed from the naturally abundant hydrogen, as opposed to proton, which only refers to the most common isotope of hydrogen.
+Burette||A burette is a vertical cylindrical piece of laboratory glassware with a volumetric graduation on its full length and a precision tap, or stopcock, on the bottom.
+
+### TOPIC=Amino Acids & Protein Structure | SECTION=Bio/Biochem | URL=https://www.wikipremed.com/mcat_course_code-040101.html | terms=71
+Protein||Proteins are large organic compounds made of amino acids arranged in a linear chain and joined together by peptide bonds between the carboxyl and amino groups of adjacent amino acid residues.
+Amino acid||An amino acid is a molecule that contains both amine and carboxyl functional groups.  In biochemistry, this term is often used to refer to the select group of specific forms that serve as the building blocks of proteins.
+Enzyme||Enzymes are proteins that catalyze chemical reactions.
+Peptide bond||A peptide bond is a chemical bond that is formed between two amino acids when the carboxyl group of one molecule reacts with the amino group of the other molecule, releasing a molecule of water.
+Primary structure||The primary structure of a biological molecule is the exact specification of its atomic composition and the chemical bonds connecting those atoms, including stereochemistry.
+Peptide||Peptides are short polymers formed from the linking, in a defined order, of alpha-amino acids.
+Tertiary structure||The tertiary structure of a protein or any other macromolecule is its three-dimensional structure, as defined by the atomic coordinates.
+Quaternary structure||The quaternary structure of a protein is the arrangement of multiple folded protein molecules in a multi-subunit complex.
+Globular protein||Globular proteins, or spheroproteins are one of the two main protein classes, comprising globelike proteins that are more or less soluble in aqueous solutions.
+Alpha helix||The alpha helix is a common motif in the secondary structure of proteins, a right-handed coiled conformation, resembling a spring, in which every backbone N-H group donates a hydrogen bond to the backbone carbonyl group of the amino acid four residues earlier.
+Secondary structure||The secondary structure of a protein is the general three-dimensional form of local segments of biopolymers such as proteins and nucleic acids.
+Active site||The active site of an enzyme contains the catalytic and binding sites.
+Negative feedback||Negative feedback feeds part of a system's output, inverted, into the system's input; generally with the result that fluctuations are attenuated.
+Competitive inhibition||Competitive inhibition is a form of enzyme inhibition where binding of the inhibitor to the enzyme prevents binding of the substrate and vice versa.
+Enzyme kinetics||Enzyme kinetics is the study of the rates of chemical reactions that are catalysed by enzymes.
+Membrane transport protein||A membrane transport protein is a protein involved in the movement of ions, small molecules, or macromolecules, such as another protein across a biological membrane.
+Glycoprotein||Glycoproteins are proteins that contain oligosaccharide chains covalently attached to their polypeptide backbones.
+Side chain||A side chain in organic chemistry and biochemistry is a part of a molecule that is attached to a core structure.
+Essential amino acid||An essential amino acid or indispensable amino acid is an amino acid that cannot be synthesized de novo, and therefore must be supplied in the diet.
+Isoelectric point||The isoelectric point is the pH at which a particular molecule or surface carries no net electrical charge.
+Zwitterion||A zwitterion is a chemical compound that is electrically neutral but carries formal positive and negative charges on different atoms.
+Protein folding||Protein folding is the physical process by which a polypeptide arranges into its characteristic three-dimensional structure.
+Beta sheet||The beta-pleated sheet is a major form of regular secondary structure in proteins along with the alpha helix.  This form of secondary structure consists of strands connected laterally by three or more hydrogen bonds, forming a generally twisted, pleated sheet.
+Enzyme catalysis||Enzyme catalysis is the catalysis of chemical reactions by proteins.
+Substrate||A substrate is a molecule upon which an enzyme acts.
+Protein complex||A protein complex is a group of two or more associated proteins formed by protein-protein interaction that is stable over time.
+Phosphorylation||Phosphorylation is the addition of a phosphate group to a protein molecule or a small molecule.
+Proteomics||Proteomics is the large-scale study of proteins.
+Enzyme inhibitor||Enzyme inhibitors are molecules that bind to enzymes and decrease their activity.
+Enzyme activator||Enzyme activators are molecules that bind to enzymes and increase their activity.
+Protease||A protease is any enzyme that conducts proteolysis, that is, begins protein catabolism by hydrolysis of the peptide bonds that link amino acids together in the polypeptide chain.
+Nuclease||A nuclease is an enzyme capable of cleaving the phosphodiester bonds between the nucleotide subunits of nucleic acids.
+Disulfide bond||A disulfide bond is a single covalent bond derived from the coupling of thiol groups.
+Non-competitive inhibition||Non-competitive inhibition is a type of inhibition that reduces the maximum rate of a chemical reaction without changing the apparent binding affinity of the catalyst for the substrate.
+Fibrous protein||Fibrous proteins, also called scleroproteins, are long filamentous protein molecules that form one of the two main classes of tertiary structure protein, the other being globular proteins.
+Collagen||Collagen is the main protein of connective tissue in animals and the most abundant protein in mammals, making up about 25% of the total protein content.
+Proteome||The term proteome refers all the expressed proteins in an organism at a given time point under defined conditions.
+Post-translational modification||Post-translational modification is the chemical modification of a protein after its initial synthesis on a ribosome.  It is one of the later steps in protein biosynthesis for many proteins.
+Native state||The native state of a protein is its operative or functional form.
+N-terminus||The N- or amino-terminus refers to the end of a protein or polypeptide terminated by an amino acid with a free amine group.
+
+### TOPIC=Enzymes | SECTION=Bio/Biochem | URL=https://www.wikipremed.com/mcat_course_code-040103.html | terms=35
+RNA||Ribonucleic acid or RNA is a nucleic acid polymer consisting of nucleotide monomers, which plays a number of important roles in the processes of translating genetic information from DNA into proteins.
+DNA||DNA is a nucleic acid that contains the genetic instructions used in the development and functioning of all known living organisms.
+Messenger RNA||Messenger Ribonucleic Acid (mRNA) is a molecule of RNA encoding a chemical blueprint for a protein product.
+Base pair||Two nucleotides on opposite complementary DNA or RNA strands that are connected via hydrogen bonds are called a base pair.
+Nucleobase||Nucleobases are the parts of RNA and DNA that may be involved in pairing. These include cytosine, guanine, adenine, thymine, uracil, xanthine and hypoxanthine.
+Nucleotide||A nucleotide is a chemical compound that consists of 3 portions: a heterocyclic base, a sugar, and one or more phosphate groups.
+Adenine||Adenine is a purine with a variety of roles in biochemistry including cellular respiration, as part of ATP, NAD, and FAD, and protein synthesis, as a chemical component of DNA and RNA
+Adenosine triphosphate||Adenosine triphosphate is a multifunctional nucleotide that is most important as a molecular currency of intracellular energy transfer.
+Chromatin||Chromatin is the complex of DNA and protein that makes up chromosomes
+Histone||Histones are the chief protein components of chromatin, acting as spools around which DNA winds, and playing a role in gene regulation.
+Guanine||Guanine is one of the five main nucleobases found in the nucleic acids DNA and RNA.  In base-pairing it binds to cytosine through three hydrogen bonds.
+Uracil||The pyrimidine uracil base pairs with adenine in RNA and is replaced by thymine in DNA
+Thymine||Thymine is one of the four bases in the nucleic acid of DNA along with adenine, guanine, and cytosine. It always base-pairs with adenine.
+Cytosine||Cytosine is one of the five main nucleobases found in the nucleic acids DNA and RNA. It is a pyrimidine derivative.  In Watson-Crick base pairing, it forms three hydrogen bonds with guanine.
+Transfer RNA||Transfer RNA (abbreviated tRNA) is a small RNA chain that transfers a specific amino acid to a growing polypeptide chain at the ribosomal site of protein synthesis during translation.
+Ribosomal RNA||Ribosomal RNA (rRNA), a type of RNA synthesized in the nucleolus, is the central component of the ribosome, the protein manufacturing machinery of all living cells.
+Purine||Purine is a heterocyclic aromatic organic compound, consisting of a pyrimidine ring fused to an imidazole ring.
+Pyrimidine||Pyrimidine is a heterocyclic aromatic organic compound similar to benzene and pyridine, containing two nitrogen atoms at positions 1 and 3 of the six-member ring
+Adenosine||Adenosine is a nucleoside composed of adenine attached to a ribose moiety via a beta-N9-glycosidic bond.
+Nucleoside||Nucleosides are glycosylamines made by attaching a nucleobase to a ribose or deoxyribose ring.
+Complementarity||Complementarity is a property of double-stranded nucleic acids such as DNA and RNA as well as DNA:RNA duplexes in which base pairs occur between them characterized by non-covalent connections via hydrogen bonds.
+Nucleosome||Nucleosomes are the fundamental repeating subunits of all eukaryotic chromatin.  Each is made up of DNA and four pairs of proteins called histones.
+Uridine||Uridine is a nucleoside formed when uracil is attached to a ribose ring via a beta-N1-glycosidic bond.
+Cytidine||Cytidine is a nucleoside that is formed when cytosine is attached to a ribose ring via a beta-N1-glycosidic bond.
+Cyclic adenosine monophosphate||Cyclic adenosine monophosphate (cAMP or cyclic AMP) is a molecule that is important in many biological processes.
+Stacking||Stacking in supramolecular chemistry refers to a stacked arrangement of aromatic molecules, which interact through aromatic interactions.
+Deoxyadenosine||Deoxyadenosine is deoxyribonucleotide and is considered a derivative of the nucleoside adenosine.
+Guanosine||Guanosine is a nucleoside comprising guanine attached to a ribose ring via a beta-N9-glycosidic bond.
+Adenosine monophosphate||Adenosine monophosphate, also known as AMP, is the ester of phosphoric acid with the nucleoside adenosine.
+Oligonucleotide||Oligonucleotides are short sequences of nucleotides (RNA or DNA), typically with twenty or fewer bases.
+DNA melting||DNA melting, also called DNA denaturation, is the process by which double-stranded deoxyribonucleic acid unwinds and separates into single-stranded strands through the breaking of hydrogen bonding between the bases.
+DNA supercoil||If a DNA segment under twist strain were to be closed into a circle by joining its two ends and then it is allowed to move freely, the circular DNA would contort into new shape, such as a simple figure-eight. Such a contortion is called a supercoil.
+A-DNA||A-DNA is one of the many possible double helical structures of DNA.  It is a right-handed double helix fairly similar to the more common and well-known B-DNA form, but with a shorter more compact helical structure.
+Z-DNA||Z-DNA is one of the many possible double helical structures of DNA. It is a left-handed double helical structure in which the double helix winds to the left in a zig-zag pattern (instead of to the right, like the more common B-DNA form).
+G-quadruplex||Nucleic acid sequences which are rich in guanine are capable of forming four-stranded structures called G-quadruplexes (Also known as G-tetrads or G4-DNA).
+
+### TOPIC=Nervous System | SECTION=Psych/Soc (Biological) | URL=https://www.wikipremed.com/mcat_course_code-040701.html | terms=157
+Neuron||Neurons are electrically excitable cells in the nervous system that process and transmit information.
+Central nervous system||The central nervous system represents the largest part of the nervous system, including the brain and the spinal cord.
+Nervous tissue||Nervous tissue is composed of neurons, which transmit impulses, and the neuroglia, which assist propagation of the nerve impulse as well as provide nutrients to the neuron.
+Action potential||An action potential is a spike of electrical discharge that travels along the membrane of a cell.
+Resting potential||The resting potential of a cell is the membrane potential that would be maintained if there were no action potentials, synaptic potentials, or other active changes in the membrane potential.
+Membrane potential||Membrane potential is the electrical voltage across a cell's plasma membrane.
+Depolarization||Depolarization is a decrease in the absolute value of a cell's membrane potential.
+Brain||The brain or encephalon is the control center of the central nervous system.
+Cerebrum||The telencephalon is the name for the forebrain, a large region within the brain to which many functions are attributed, which many people refer to as the cerebrum.
+Peripheral nervous system||The peripheral nervous system resides or extends outside the central nervous system serving the limbs and organs.
+Somatic nervous system||The somatic nervous system is the part of the peripheral nervous system associated with the voluntary control of body movements and with reception of external stimuli.
+Autonomic nervous system||The autonomic nervous system is the part of the peripheral nervous system that acts as a control system, maintaining homeostasis in the body.
+Motor neuron||Motor neurons begin in the central nervous system projecting their axons outside the CNS and directly or indirectly controlling muscles.
+Spinal cord||The spinal cord is a thin, tubular bundle of nerves that is an extension of the central nervous system from the brain, enclosed and protected by the bony vertebral column.
+Sympathetic nervous system||The sympathetic nervous system is a branch of the autonomic nervous system, always active at a basal level and becoming more active during times of stress.
+Parasympathetic nervous system||In a kind of complementary opposition to the sympathetic nervous system, the parasympathetic nervous system is the division of the autonomic nervous system that functions with actions that do not correspond to stress.
+Dendrite||Dendrites are the branched projections of a neuron that act to conduct the electrical stimulation received from other neural cells to the cell body of the neuron.
+Potassium channel||Potassium channels are the most common type of ion channel within the physiology.
+Sodium channel||Sodium channels are integral membrane proteins that conduct sodium ions through a cell's plasma membrane.
+Positive feedback||Positive feedback is a feedback system in which the system responds to the perturbation with activity in the same direction as the perturbation.
+Myelin||Myelin is an electrically insulating phospholipid layer that surrounds the axons of many neurons.
+Nodes of Ranvier||Nodes of Ranvier, also known as neurofibril nodes, are regularly spaced gaps in the myelin sheath around an axon or nerve fiber.
+Chemical synapse||Chemical synapses are specialized junctions through which the cells of the nervous system employ neurotransmitters to signal to each other and to non-neuronal cells such as those in muscles or glands.
+Neurotransmitter||Neurotransmitters are chemicals that are used to relay, amplify and modulate signals between a neuron and another cell.
+Grey matter||Grey matter is a major component of the central nervous system, consisting of nerve cell bodies, glial cells, capillaries, and short axons and dendrites.
+White matter||White matter is composed of myelinated nerve cell processes, or axons, which connect various gray matter areas of the brain to each other.
+Neural network||A neural network refers to a network or circuitry of biological neurons.
+Reflex||A reflex action is an automatic (involuntary) neuromuscular action elicited by a defined stimulus.
+Sensory neuron||Sensory neurons are nerve cells within the nervous system responsible for converting external stimuli from the organism's environment into nerve impulses relayed to the central nervous system.
+Fight-or-flight response||The fight-or-flight response states that animals react to threats with a general discharge of the sympathetic nervous system.
+Soma||The soma, or perikaryon, is the bulbous end of a neuron, containing the cell nucleus.
+Afferent nerve||Afferent neurons--otherwise known as sensory or receptor neurons--carry nerve impulses from receptors or sense organs toward the central nervous system.
+Efferent nerve||Efferent nerves - otherwise known as motor or effector neurons - carry nerve impulses away from the central nervous system to effectors such as muscles or glands.
+Glial cell||Glial cells, commonly called neuroglia, are non-neuronal cells that provide support and nutrition, maintain homeostasis, form myelin, and participate in signal transmission in the nervous system.
+Schwann cell||Schwann cells are a variety of glial cell that mainly provide myelin insulation to axons in the peripheral nervous system.
+Reversal potential||In a biological membrane, the reversal potential (or Nernst potential) of a particular ion is the membrane voltage at which there is no net flow of ions from one side of the membrane to the other.
+Saltatory conduction||Saltatory conduction is the means by which action potentials are transmitted along myelinated nerve fibers.
+Neuromuscular junction||A neuromuscular junction is the synapse or junction of the axon terminal of a motoneuron with the motor end plate.
+Acetylcholine||The first neurotransmitter identified, the chemical compound acetylcholine is a neurotransmitter in both the peripheral nervous system and central nervous system.
+Norepinephrine||Epinephrine and norepinephrine are fight or flight hormones released from the adrenal glands, which are also neurotransmitters in the central and sympathetic nervous systems.
+

@@ -1,0 +1,130 @@
+# Copyright: Ankitects Pty Ltd and contributors
+# License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
+"""Speedrun desktop integration: the dashboard, the disconfirmer authoring dialog, and
+the hooks that keep the note type present and the fading ladder updated.
+
+Wired in from `aqt.main.AnkiQt.setupMenus` via `setup_speedrun_menu`.
+"""
+
+from __future__ import annotations
+
+import aqt
+import aqt.main
+from aqt import gui_hooks
+from aqt.qt import *
+from aqt.utils import tooltip
+
+from .authoring import DisconfirmerDialog
+from .dashboard import SpeedrunDashboard
+
+__all__ = ["setup_speedrun_menu", "SpeedrunDashboard", "DisconfirmerDialog"]
+
+_initialized = False
+
+
+def setup_speedrun_menu(mw: aqt.main.AnkiQt) -> None:
+    """Add the Speedrun actions to the Tools menu and register hooks/dialogs once."""
+    _init_once()
+    dashboard_action = QAction("Speedrun Dashboard", mw)
+    qconnect(dashboard_action.triggered, lambda: aqt.dialogs.open("SpeedrunDashboard", mw))
+    mw.form.menuTools.addAction(dashboard_action)
+
+    add_action = QAction("Add Disconfirmer Card...", mw)
+    qconnect(add_action.triggered, lambda: aqt.dialogs.open("SpeedrunAuthoring", mw))
+    mw.form.menuTools.addAction(add_action)
+
+    from . import ai_ui
+
+    classify_action = QAction("Classify Card Types (AI)", mw)
+    qconnect(classify_action.triggered, lambda: ai_ui.classify_card_types(mw))
+    mw.form.menuTools.addAction(classify_action)
+
+    eval_action = QAction("Run AI Eval", mw)
+    qconnect(eval_action.triggered, lambda: ai_ui.run_ai_eval(mw))
+    mw.form.menuTools.addAction(eval_action)
+
+    settings_action = QAction("Speedrun AI Settings...", mw)
+    qconnect(settings_action.triggered, lambda: ai_ui.show_ai_settings(mw))
+    mw.form.menuTools.addAction(settings_action)
+
+    from anki.speedrun import pretest as _pretest
+
+    pretest_action = QAction("Pretest-first mode (new cards)", mw)
+    pretest_action.setCheckable(True)
+    pretest_action.setChecked(_pretest.pretest_enabled(mw.col) if mw.col else True)
+
+    def _toggle_pretest(checked: bool) -> None:
+        if mw.col is None:
+            return
+        _pretest.set_pretest_enabled(mw.col, checked)
+        tooltip(
+            "Pretest-first mode ON (new cards force a guess + feedback)."
+            if checked
+            else "Pretest-first mode OFF (ablation: new cards seed as plain Basic).",
+            parent=mw,
+        )
+
+    qconnect(pretest_action.toggled, _toggle_pretest)
+    mw.form.menuTools.addAction(pretest_action)
+
+
+def _init_once() -> None:
+    global _initialized
+    if _initialized:
+        return
+    _initialized = True
+    aqt.dialogs.register_dialog("SpeedrunDashboard", SpeedrunDashboard)
+    aqt.dialogs.register_dialog("SpeedrunAuthoring", DisconfirmerDialog)
+    gui_hooks.profile_did_open.append(_ensure_notetype)
+    gui_hooks.profile_did_open.append(_load_ai_key)
+    gui_hooks.reviewer_did_answer_card.append(_on_answer_card)
+
+    # Card-type classification runs in the study loop (background, on deck open) so the
+    # in-review disconfirmer gating/hints just work - no manual Tools step. Falls back to
+    # the heuristic when AI is off / keyless.
+    from . import autoclassify
+
+    gui_hooks.overview_did_refresh.append(autoclassify.on_overview_refresh)
+
+
+def _ensure_notetype() -> None:
+    mw = aqt.mw
+    if mw is None or mw.col is None:
+        return
+    try:
+        # Note-type creation now lives in the shared Rust engine (Stage 2), so
+        # desktop and AnkiDroid create identical Speedrun note types.
+        mw.col.speedrun_ensure_notetypes()
+    except Exception as exc:  # never break startup
+        print("speedrun: ensure_notetype failed:", exc)
+
+
+def _load_ai_key() -> None:
+    mw = aqt.mw
+    if mw is None:
+        return
+    try:
+        from . import ai_ui
+
+        ai_ui.load_profile_key(mw)
+    except Exception as exc:
+        print("speedrun: load ai key failed:", exc)
+
+
+def _on_answer_card(reviewer, card, ease) -> None:
+    mw = aqt.mw
+    if mw is None or mw.col is None:
+        return
+    try:
+        from . import state
+
+        state.record_answer(mw.col, card, ease)
+    except Exception as exc:  # never break review
+        print("speedrun: fading update failed:", exc)
+
+    try:
+        from . import review
+
+        review.maybe_prompt(mw, card, ease)
+    except Exception as exc:  # never break review
+        print("speedrun: disconfirmer prompt failed:", exc)

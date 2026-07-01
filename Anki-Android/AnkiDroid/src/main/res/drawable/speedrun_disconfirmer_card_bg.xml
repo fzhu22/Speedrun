@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Speedrun: subtle rounded box behind the missed card's Q/A in the disconfirmer prompt.
+     A theme-agnostic translucent grey (12% like the desktop dialog) so it reads on light and dark. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="8dp" />
+    <solid android:color="#1F808080" />
+</shape>

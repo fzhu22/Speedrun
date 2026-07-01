@@ -1,0 +1,34 @@
+# Speedrun monorepo root ignores.
+# The per-app .gitignore files (anki/.gitignore, Anki-Android/.gitignore) still apply
+# to their own subtrees and exclude build outputs (out/, target/, node_modules/, build/,
+# .gradle/, local.properties, etc.). These rules cover root-level and cross-cutting cruft.
+
+# --- Secrets: never commit API keys / credentials ---
+/api-key
+*api-key*
+speedrun_ai_key
+# Machine-specific Cursor MCP config (local paths; keep skills/rules)
+**/.cursor/mcp.json
+
+# Compiled self-hosted sync-server binary staged for deployment (build artifact)
+anki/docs/syncserver/fly/anki-sync-server
+
+# --- Root-level diagnostic screenshots and scratch dumps ---
+/*.png
+/u.xml
+
+# --- Large, regenerable build workspaces / artifacts ---
+# Mobile backend cross-compile workspace (recreated by backend_setup.sh / backend_build.sh)
+/Anki-Android-Backend/
+# Native build caches and packaged decks (rebuilt from source)
+**/.cxx/
+*.apkg
+*.colpkg
+
+# --- Local Cursor agent state (keep .cursor/skills and .cursor/rules) ---
+/.cursor/plans/
+/.cursor/projects/
+
+# --- OS clutter ---
+.DS_Store
+Thumbs.db

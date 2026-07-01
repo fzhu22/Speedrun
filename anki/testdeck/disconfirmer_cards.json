@@ -1,0 +1,93 @@
+{
+  "note": "Example Feature-2 disconfirmer cards (PRD section 6.1). Fields mirror the note type: Provenance, Principle, OriginalCoverStory, SwappedCoverStory, Trap, Disconfirmer, BoundaryCase. These are authored exemplars for the test fixture; in the product the STUDENT authors the body (no AI authoring). 'expected_validation' marks whether PRD 6.5 disconfirmer validation should pass or reject; the build script tags rejects with disconfirmer::invalid so the validation logic has a negative test case. No copyrighted stems are stored (Provenance is a self-reference, PRD 6.1 / 11.1).",
+  "cards": [
+    {
+      "provenance": "self::biochem-1A-competitive",
+      "section_tag": "MCAT::BioBiochem::1A::EnzymeKinetics",
+      "principle": "A competitive inhibitor raises the apparent Km but leaves Vmax unchanged because excess substrate can outcompete it.",
+      "original_cover_story": "A statin-like drug competes with the natural substrate at an enzyme's active site in a textbook kinetics plot.",
+      "swapped_cover_story": "A herbicide competes with the normal substrate at the active site of a plant metabolic enzyme.",
+      "trap": "Assuming any inhibitor must lower Vmax.",
+      "disconfirmer": "If raising substrate to a large excess fails to restore Vmax, the inhibition is not purely competitive.",
+      "boundary_case": "A noncompetitive inhibitor binds an allosteric site, lowers Vmax, and leaves Km unchanged.",
+      "expected_validation": "pass"
+    },
+    {
+      "provenance": "self::psych-7A-negreinf",
+      "section_tag": "MCAT::PsychSoc::7A::Learning",
+      "principle": "Negative reinforcement increases a behavior by removing an aversive stimulus.",
+      "original_cover_story": "A student studies more to stop their parents' nagging.",
+      "swapped_cover_story": "An employee submits reports early to stop a manager's reminder emails.",
+      "trap": "Reading 'negative' as 'punishment' because both sound bad.",
+      "disconfirmer": "If the target behavior decreased rather than increased, it would be punishment, not negative reinforcement.",
+      "boundary_case": "Removing a pleasant stimulus to reduce a behavior is negative punishment, not negative reinforcement.",
+      "expected_validation": "pass"
+    },
+    {
+      "provenance": "self::orgo-5D-sn1sn2",
+      "section_tag": "MCAT::ChemPhys::5D::Substitution",
+      "principle": "SN2 proceeds by a single concerted backside attack, so its rate depends on both substrate and nucleophile and it inverts the stereocenter.",
+      "original_cover_story": "A primary alkyl bromide reacts with a strong nucleophile in acetone.",
+      "swapped_cover_story": "A primary alkyl tosylate reacts with cyanide in DMSO.",
+      "trap": "Predicting racemization (an SN1 signature) for a primary substrate.",
+      "disconfirmer": "If the product showed racemization or the rate were independent of nucleophile concentration, the mechanism would be SN1, not SN2.",
+      "boundary_case": "A tertiary substrate in polar protic solvent with a weak nucleophile favors SN1 with racemization.",
+      "expected_validation": "pass"
+    },
+    {
+      "provenance": "self::chem-5E-lechatelier",
+      "section_tag": "MCAT::ChemPhys::5E::Equilibrium",
+      "principle": "An equilibrium shifts to counteract an imposed change in concentration, pressure, or temperature.",
+      "original_cover_story": "Removing ammonia from the Haber process to drive more product.",
+      "swapped_cover_story": "Bubbling out CO2 from a carbonic-acid equilibrium in a beverage.",
+      "trap": "Thinking a catalyst can shift the equilibrium position.",
+      "disconfirmer": "If adding a catalyst changed the equilibrium amounts, Le Chatelier would be violated; catalysts only change the rate of approach.",
+      "boundary_case": "For a reaction with equal gas moles on both sides, changing pressure by volume does not shift the equilibrium.",
+      "expected_validation": "pass"
+    },
+    {
+      "provenance": "self::chem-5E-catalyst",
+      "section_tag": "MCAT::ChemPhys::5E::Catalysis",
+      "principle": "A catalyst lowers activation energy and speeds forward and reverse rates equally, so it does not change Keq or dG.",
+      "original_cover_story": "An enzyme accelerates a metabolic reaction in a cell.",
+      "swapped_cover_story": "A platinum catalyst speeds a reaction in a catalytic converter.",
+      "trap": "Believing a catalyst makes a nonspontaneous reaction spontaneous.",
+      "disconfirmer": "If a catalyst changed the sign of dG or the value of Keq, it would be supplying energy, which a catalyst cannot do.",
+      "boundary_case": "A catalyst does not increase the maximum yield at equilibrium; it only shortens the time to reach it.",
+      "expected_validation": "pass"
+    },
+    {
+      "provenance": "self::psych-7A-classical",
+      "section_tag": "MCAT::PsychSoc::7A::Learning",
+      "principle": "In classical conditioning a neutral stimulus becomes a conditioned stimulus by pairing with an unconditioned stimulus; the learner is passive.",
+      "original_cover_story": "A bell paired with food eventually elicits salivation.",
+      "swapped_cover_story": "A specific song played before a fire drill eventually triggers anxiety.",
+      "trap": "Calling it operant because a 'response' occurs.",
+      "disconfirmer": "If the behavior changed because of consequences that followed it (reward or punishment), it would be operant, not classical, conditioning.",
+      "boundary_case": "A rat pressing a lever for food is operant conditioning, because the consequence shapes a voluntary behavior.",
+      "expected_validation": "pass"
+    },
+    {
+      "provenance": "self::biochem-2A-nakpump",
+      "section_tag": "MCAT::BioBiochem::2A::Transport",
+      "principle": "The Na+/K+ ATPase uses ATP to move 3 Na+ out and 2 K+ in, maintaining the gradients that set the resting potential.",
+      "original_cover_story": "A neuron maintains its resting potential between action potentials.",
+      "swapped_cover_story": "A kidney epithelial cell sustains ion gradients for secondary active transport of glucose.",
+      "trap": "Treating the pump as passive because it moves ions across the membrane.",
+      "disconfirmer": "If transport continued unchanged after ATP was depleted, it would not be primary active transport.",
+      "boundary_case": "Na+-glucose symport is secondary active transport: it uses the sodium gradient, not ATP directly.",
+      "expected_validation": "pass"
+    },
+    {
+      "provenance": "self::biochem-1A-aacharge-BAD",
+      "section_tag": "MCAT::BioBiochem::1A::AminoAcids",
+      "principle": "Lysine, arginine, and histidine have basic side chains that can be positively charged near physiological pH.",
+      "original_cover_story": "Identifying which residue forms a salt bridge with a phosphate at pH 7.4.",
+      "swapped_cover_story": "Identifying which residue binds a negatively charged drug at blood pH.",
+      "trap": "Confusing acidic and basic side chains.",
+      "disconfirmer": "The positively charged amino acids are lysine, arginine, and histidine.",
+      "boundary_case": "Aspartate and glutamate are negatively charged at physiological pH.",
+      "expected_validation": "reject"
+    }
+  ]
+}

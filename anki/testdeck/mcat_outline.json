@@ -1,0 +1,62 @@
+{
+  "exam": "MCAT",
+  "note": "Coverage-map denominator. Enumerates the official AAMC content categories for the three science sections. CARS has no content categories (skills-based) and is excluded as a flashcard deck per PRD 4.2. 'covered' marks which categories this test deck authors cards for; the coverage map = covered / total.",
+  "scale": { "total": [472, 528], "section": [118, 132] },
+  "sections": [
+    {
+      "id": "BioBiochem",
+      "name": "Biological and Biochemical Foundations of Living Systems",
+      "tag": "MCAT::BioBiochem",
+      "foundational_concepts": [1, 2, 3],
+      "content_categories": [
+        { "code": "1A", "tag": "MCAT::BioBiochem::1A", "name": "Structure and function of proteins and their constituent amino acids", "covered": true },
+        { "code": "1B", "tag": "MCAT::BioBiochem::1B", "name": "Transmission of genetic information from the gene to the protein", "covered": true },
+        { "code": "1C", "tag": "MCAT::BioBiochem::1C", "name": "Transmission of heritable information and processes that increase genetic diversity", "covered": true },
+        { "code": "1D", "tag": "MCAT::BioBiochem::1D", "name": "Principles of bioenergetics and fuel molecule metabolism", "covered": true },
+        { "code": "2A", "tag": "MCAT::BioBiochem::2A", "name": "Assemblies of molecules, cells, and groups of cells within organisms", "covered": true },
+        { "code": "2B", "tag": "MCAT::BioBiochem::2B", "name": "Structure, growth, physiology, and genetics of prokaryotes and viruses", "covered": false },
+        { "code": "2C", "tag": "MCAT::BioBiochem::2C", "name": "Processes of cell division, differentiation, and specialization", "covered": true },
+        { "code": "3A", "tag": "MCAT::BioBiochem::3A", "name": "Structure and functions of the nervous and endocrine systems", "covered": true },
+        { "code": "3B", "tag": "MCAT::BioBiochem::3B", "name": "Structure and integrative functions of the main organ systems", "covered": true }
+      ]
+    },
+    {
+      "id": "ChemPhys",
+      "name": "Chemical and Physical Foundations of Biological Systems",
+      "tag": "MCAT::ChemPhys",
+      "foundational_concepts": [4, 5],
+      "content_categories": [
+        { "code": "4A", "tag": "MCAT::ChemPhys::4A", "name": "Translational motion, forces, work, energy, and equilibrium", "covered": true },
+        { "code": "4B", "tag": "MCAT::ChemPhys::4B", "name": "Importance of fluids for circulation, gas movement, and gas exchange", "covered": true },
+        { "code": "4C", "tag": "MCAT::ChemPhys::4C", "name": "Electrochemistry and electrical circuits and their elements", "covered": true },
+        { "code": "4D", "tag": "MCAT::ChemPhys::4D", "name": "How light and sound interact with matter", "covered": false },
+        { "code": "4E", "tag": "MCAT::ChemPhys::4E", "name": "Atoms, nuclear decay, electronic structure, and atomic chemical behavior", "covered": true },
+        { "code": "5A", "tag": "MCAT::ChemPhys::5A", "name": "Unique nature of water and its solutions", "covered": true },
+        { "code": "5B", "tag": "MCAT::ChemPhys::5B", "name": "Nature of molecules and intermolecular interactions", "covered": true },
+        { "code": "5C", "tag": "MCAT::ChemPhys::5C", "name": "Separation and purification methods", "covered": false },
+        { "code": "5D", "tag": "MCAT::ChemPhys::5D", "name": "Structure, function, and reactivity of biologically relevant molecules", "covered": true },
+        { "code": "5E", "tag": "MCAT::ChemPhys::5E", "name": "Principles of chemical thermodynamics and kinetics", "covered": true }
+      ]
+    },
+    {
+      "id": "PsychSoc",
+      "name": "Psychological, Social, and Biological Foundations of Behavior",
+      "tag": "MCAT::PsychSoc",
+      "foundational_concepts": [6, 7, 8, 9, 10],
+      "content_categories": [
+        { "code": "6A", "tag": "MCAT::PsychSoc::6A", "name": "Sensing the environment", "covered": true },
+        { "code": "6B", "tag": "MCAT::PsychSoc::6B", "name": "Making sense of the environment", "covered": true },
+        { "code": "6C", "tag": "MCAT::PsychSoc::6C", "name": "Responding to the world", "covered": true },
+        { "code": "7A", "tag": "MCAT::PsychSoc::7A", "name": "Individual influences on behavior", "covered": true },
+        { "code": "7B", "tag": "MCAT::PsychSoc::7B", "name": "Social processes that influence human behavior", "covered": true },
+        { "code": "7C", "tag": "MCAT::PsychSoc::7C", "name": "Attitude and behavior change", "covered": false },
+        { "code": "8A", "tag": "MCAT::PsychSoc::8A", "name": "Self-identity", "covered": false },
+        { "code": "8B", "tag": "MCAT::PsychSoc::8B", "name": "Social thinking", "covered": true },
+        { "code": "8C", "tag": "MCAT::PsychSoc::8C", "name": "Social interactions", "covered": true },
+        { "code": "9A", "tag": "MCAT::PsychSoc::9A", "name": "Understanding social structure", "covered": true },
+        { "code": "9B", "tag": "MCAT::PsychSoc::9B", "name": "Demographic characteristics and processes", "covered": false },
+        { "code": "10A", "tag": "MCAT::PsychSoc::10A", "name": "Social inequality", "covered": false }
+      ]
+    }
+  ]
+}
