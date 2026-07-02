@@ -53,6 +53,10 @@ def show_speedrun_features(mw: aqt.main.AnkiQt) -> None:
     fade_cb.setChecked(state.fading_enabled(col))
     layout.addWidget(fade_cb)
 
+    grade_cb = QCheckBox('Grading split: set "Again" (missed) apart from Hard/Good/Easy (passed)')
+    grade_cb.setChecked(state.grading_split_enabled(col))
+    layout.addWidget(grade_cb)
+
     note = QLabel(
         "The AI hint lane is separate, gated by whether an API key is set "
         "(Tools > Speedrun AI Settings) - it is off with no key."
@@ -70,6 +74,7 @@ def show_speedrun_features(mw: aqt.main.AnkiQt) -> None:
         pretest.set_pretest_enabled(col, pretest_cb.isChecked())
         review.set_disconfirmer_enabled(col, disc_cb.isChecked())
         state.set_fading_enabled(col, fade_cb.isChecked())
+        state.set_grading_split_enabled(col, grade_cb.isChecked())
         tooltip("Speedrun feature settings saved.", parent=mw)
         dialog.accept()
 

@@ -1090,6 +1090,15 @@ open class Reviewer :
 
     override fun displayAnswerBottomBar() {
         super.displayAnswerBottomBar()
+        // Speedrun SPOV 1: set "Again" (the only failure) apart from the Hard/Good/Easy
+        // pass cluster with a divider, so "Hard" is not misread as a fail. Gated by the
+        // synced speedrun_grading_split_enabled config (default on); portrait only (the
+        // landscape reflow re-lays the four buttons and drops the divider).
+        launchCatchingTask {
+            val split = withCol { config.get<Boolean>("speedrun_grading_split_enabled") ?: true }
+            findViewById<View?>(R.id.speedrun_grade_divider)?.visibility =
+                if (split) View.VISIBLE else View.GONE
+        }
         // Set correct label and background resource for each button
         // Note that it's necessary to set the resource dynamically as the ease2 / ease3 buttons
         // (which libanki expects ease to be 2 and 3) can either be hard, good, or easy - depending on num buttons shown

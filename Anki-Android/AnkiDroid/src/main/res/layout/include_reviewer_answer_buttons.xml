@@ -81,6 +81,18 @@
                     style="@style/AgainButtonEaseStyle"/>
             </LinearLayout>
 
+            <!-- Speedrun SPOV 1: gated divider that sets "Again" (the only failure) apart
+                 from the Hard/Good/Easy pass cluster. Shown only when the synced
+                 speedrun_grading_split_enabled config is on; GONE otherwise (classic row). -->
+            <View
+                android:id="@+id/speedrun_grade_divider"
+                android:layout_width="2dp"
+                android:layout_height="?minTouchTargetSize"
+                android:layout_marginHorizontal="6dp"
+                android:layout_marginVertical="10dp"
+                android:background="#9E9E9E"
+                android:visibility="gone" />
+
             <LinearLayout
                 style="@style/FooterButton"
                 android:background="?attr/hardButtonRef"

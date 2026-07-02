@@ -82,3 +82,27 @@ button {
         border-top-color: color(border-subtle);
     }
 }
+
+/* Speedrun SPOV 1: set the failure grade (Again) apart from the pass-difficulty grades
+ * (Hard/Good/Easy), so "Hard" is not misread as a fail. Gated by the
+ * speedrun_grading_split_enabled config; when off the classic flat row is emitted. */
+table.sr-grade {
+    .sr-sep {
+        width: 22px;
+        border-left: 1px solid rgba(128, 128, 128, 0.35);
+    }
+
+    tr.sr-cap td {
+        font-size: x-small;
+        font-weight: normal;
+        opacity: 0.55;
+        text-align: center;
+        padding-top: 2px;
+    }
+
+    button.sr-fail {
+        background: #c0392b;
+        color: #fff;
+        border-color: #a93226;
+    }
+}

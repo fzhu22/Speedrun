@@ -911,17 +911,29 @@ timerStopped = false;
         )
         return buttons_tuple
 
+    def _grading_split_enabled(self) -> bool:
+        """Speedrun SPOV 1: show "Again" apart from the pass grades (default on).
+
+        Read straight from the synced collection config so desktop and AnkiDroid agree; a
+        missing key means on. Never let a config hiccup break the grading row.
+        """
+        try:
+            return bool(self.mw.col.get_config("speedrun_grading_split_enabled", True))
+        except Exception:
+            return True
+
     def _answerButtons(self) -> str:
         default = self._defaultEase()
 
         assert isinstance(self.mw.col.sched, V3Scheduler)
         labels = self.mw.col.sched.describe_next_states(self._v3.states)
+        split = self._grading_split_enabled()
 
         def but(i: int, label: str) -> str:
-            if i == default:
-                extra = """id="defease" """
-            else:
-                extra = ""
+            extra = 'id="defease" ' if i == default else ""
+            # Speedrun: tag the failure grade vs the pass grades so CSS can separate them.
+            if split:
+                extra += 'class="sr-fail" ' if i == 1 else 'class="sr-pass" '
             due = self._buttonTime(i, v3_labels=labels)
             key = (
                 tr.actions_shortcut_key(val=aqt.mw.pm.get_answer_key(i))
@@ -939,8 +951,27 @@ timerStopped = false;
                 due,
             )
 
+        buttons = self._answerButtonList()
+
+        # Speedrun SPOV 1: only "Again" (ease 1) is a failure; Hard/Good/Easy all mean
+        # "recalled it, at some difficulty". Set the failure grade apart from the pass
+        # cluster with a divider + short captions so users stop pressing Hard for a miss.
+        if split and any(ease == 1 for ease, _ in buttons):
+            passes = [b for b in buttons if b[0] != 1]
+            buf = '<center><table class="sr-grade" cellpadding=0 cellspacing=0><tr>'
+            buf += but(1, dict(buttons)[1])
+            buf += '<td class="sr-sep" rowspan="2"></td>'
+            for ease, label in passes:
+                buf += but(ease, label)
+            # Captions sit BELOW the buttons so they don't collide with the "next due"
+            # time labels, which float above each button.
+            buf += '</tr><tr class="sr-cap"><td>Missed it</td>'
+            buf += '<td colspan="%d">Recalled it</td></tr>' % max(len(passes), 1)
+            buf += "</table>"
+            return buf
+
         buf = "<center><table cellpadding=0 cellspacing=0><tr>"
-        for ease, label in self._answerButtonList():
+        for ease, label in buttons:
             buf += but(ease, label)
         buf += "</tr></table>"
         return buf

@@ -47,6 +47,23 @@ def set_fading_enabled(col, enabled: bool) -> None:
     col.set_config(FADING_ENABLED_KEY, bool(enabled))
 
 
+#: Collection-config flag (default on), read by BOTH the desktop reviewer and AnkiDroid.
+#: When on, the grading row sets "Again" (the only failure) apart from the Hard/Good/Easy
+#: pass cluster so "Hard" reads as "recalled, but hard" rather than a fail (SPOV 1: end the
+#: Hard-as-pass trap). Off = Anki's classic flat four-button row (the ablation/control arm).
+GRADING_SPLIT_KEY = "speedrun_grading_split_enabled"
+
+
+def grading_split_enabled(col) -> bool:
+    """Whether the fail/pass-difficulty split grading row is shown (default True)."""
+    val = col.get_config(GRADING_SPLIT_KEY, default=None)
+    return True if val is None else bool(val)
+
+
+def set_grading_split_enabled(col, enabled: bool) -> None:
+    col.set_config(GRADING_SPLIT_KEY, bool(enabled))
+
+
 def load_crutch(col) -> Dict:
     return col.get_config(CRUTCH_KEY, default=None) or anticrutch.empty_state()
 
