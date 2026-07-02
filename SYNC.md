@@ -102,28 +102,33 @@ fly status
 
 ## Point the clients at it
 
-Use your **server username/password** (the `SYNC_USER1` value), *not* an AnkiWeb
-account. Log out of AnkiWeb on both clients first if you were signed in.
+The server URL is **baked into both apps and the field is locked**, so you never type it -
+you only sign in. Use your **server username/password** (the `SYNC_USER1` value), *not* an
+AnkiWeb account. (If you were previously signed in to AnkiWeb, log out first.)
+
+> Baked default: both apps ship pointing at `https://speedrun-sync-frank-1vls.fly.dev/`.
+> To retarget a build at a different server, change `DEFAULT_SYNC_URL` in
+> [anki/qt/aqt/profiles.py](anki/qt/aqt/profiles.py) (desktop) and in
+> [Anki-Android/.../Sync.kt](Anki-Android/AnkiDroid/src/main/java/com/ichi2/anki/Sync.kt)
+> (mobile), then rebuild.
 
 ### Desktop (our fork)
 
-1. `Tools > Preferences > Syncing`.
-2. In **Self-hosted sync server**, enter: `https://speedrun-sync-<you>.fly.dev/`
-   (the engine appends `sync/` and `msync/` automatically).
-3. Click **Sync**, log in with your server username/password.
-4. The desktop holds the MCAT deck, so when prompted choose **Upload to server**.
+1. Click **Sync** (top-right) and log in with your server username/password. The URL is
+   pre-filled and read-only under `Tools > Preferences > Syncing` - nothing to enter.
+2. On the device that already holds the MCAT deck, choose **Upload to server** on the first
+   sync; on a fresh device choose **Download from server**.
 
 ### AnkiDroid (phone build)
 
-1. `Settings > Sync > Custom sync server` -> enable it.
-2. Set both the **sync URL** and **media sync URL** to
-   `https://speedrun-sync-<you>.fly.dev/`.
-3. `Settings > Sync > AnkiWeb account` -> log in with the same server
-   username/password.
-4. Trigger a sync; when prompted choose **Download from server**.
+1. `Settings > Sync > AnkiWeb account` -> log in with the same server username/password.
+   Custom sync is already enabled and the URL is pre-filled + locked under
+   `Settings > Sync > Custom sync server` - nothing to enter.
+2. Trigger a sync (the circular-arrows icon); on a fresh device choose **Download from
+   server**.
 
-After that initial upload (desktop) + download (phone), syncing is two-way:
-review on either device, sync, and the other device catches up.
+After the initial upload (whichever device has the deck) + download (the other), syncing is
+two-way: review on either device, sync, and the other catches up.
 
 ### Conflict rule (important)
 

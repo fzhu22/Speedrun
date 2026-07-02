@@ -31,14 +31,33 @@ PRETEST_DECK = "Speedrun Pretest (sample)"
 PRETEST_SEED_TAG = "speedrun_pretest_seed"
 
 
+def _covered_codes(col) -> set:
+    """Content-category codes that already have at least one card, using the same
+    tag->category rule as the dashboard (the most-specific ``::`` part that is a known
+    code). Lets seeding top up only the categories that are still missing."""
+    known = set(SAMPLE_CARDS.keys())
+    covered: set = set()
+    for nid in col.find_notes(f"tag:{TAG_PREFIX}::*"):
+        for tag in col.get_note(nid).tags:
+            for part in reversed(tag.split("::")):
+                if part in known:
+                    covered.add(part)
+                    break
+    return covered
+
+
 def seed_sample_deck(col) -> int:
-    """Create the original sample content deck. Returns the number of cards added."""
-    if col.find_notes(f"tag:{SAMPLE_TAG}"):
-        return 0
+    """Create or top up the original sample deck so every AAMC content category has at
+    least one card. Idempotent per-category: re-running adds only the categories that
+    are still missing (e.g. a collection seeded from an older, smaller set, or one that
+    imported only a partial deck), so coverage can reach 100%. Returns cards added."""
     deck_id = col.decks.id(SAMPLE_DECK)
     model = col.models.by_name("Basic") or col.models.current()
+    covered = _covered_codes(col)
     added = 0
     for code, qas in SAMPLE_CARDS.items():
+        if code in covered:
+            continue
         tag = f"{TAG_PREFIX}::{code}"
         for front, back in qas:
             note = col.new_note(model)

@@ -68,10 +68,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 <div class="speedrun">
     <header class="head">
         <h1>Speedrun - Readiness dashboard</h1>
-        <p class="sub">
-            Concept knowledge graph over the AAMC outline. Memory is the per-topic
-            FSRS recall; the L3-L0 badge is the disconfirmer fading level.
-        </p>
     </header>
 
     {#if isEmpty}
@@ -145,13 +141,13 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
         <div class="stack">
             <section class="panel">
-                <h2>The three scores (never blended)</h2>
+                <h2>The three scores</h2>
                 <div class="scores">
                     <div class="score">
                         <span class="score-label">Memory</span>
                         <span class="score-body">
-                            per-topic FSRS recall, shown with a 95% range that
-                            narrows as you review more - see the <b>Mem</b> column.
+                            per-topic FSRS recall, with a 95% range in the
+                            <b>Mem</b> column.
                         </span>
                     </div>
                     <div class="score">
@@ -164,8 +160,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     </div>
                 </div>
                 <p class="fine">
-                    {totalReviews.toLocaleString()} reviews recorded. The three
-                    scores are shown separately and never combined into one number.
+                    {totalReviews.toLocaleString()} reviews recorded.
                 </p>
             </section>
 
@@ -178,12 +173,12 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                                 <div class="plan-head">
                                     <span class="code">{item.code}</span>
                                     <span class="title">{item.title}</span>
-                                    <span class="rung">{item.rung}</span>
-                                    {#if item.prerequisite}
-                                        <span class="prereq-badge">
-                                            prerequisite
-                                        </span>
-                                    {/if}
+                                    <span class="badges">
+                                        <span class="rung">{item.rung}</span>
+                                        {#if item.prerequisite}
+                                            <span class="prereq-badge">prereq</span>
+                                        {/if}
+                                    </span>
                                 </div>
                                 <div class="reason">
                                     {item.reason} &middot; score {item.score.toFixed(2)}
@@ -198,12 +193,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         </div>
     </div>
 
-    <footer class="foot">
-        Coverage and planning use validated edges only; yield weights are
-        illustrative and tunable. The L3-L0 badge is the per-family disconfirmer
-        authoring level (it fades as you master a family). Memory populates as you
-        review.
-    </footer>
 </div>
 
 <style lang="scss">
@@ -221,12 +210,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             margin: 6px 0 4px;
             font-size: 1.35em;
             font-weight: 700;
-        }
-
-        .sub {
-            margin: 0;
-            color: var(--fg-subtle);
-            font-size: 0.85em;
         }
     }
 
@@ -418,17 +401,26 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     .plan-head {
         display: flex;
-        flex-wrap: wrap;
-        align-items: center;
+        align-items: flex-start;
         gap: 8px;
 
         .code {
+            flex: none;
             font-weight: 700;
         }
 
         .title {
             flex: 1 1 auto;
             min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .badges {
+            flex: none;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
     }
 
@@ -438,6 +430,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         border-radius: 5px;
         font-size: 0.72em;
         font-weight: 700;
+        white-space: nowrap;
         color: #6ea8fe;
     }
 
@@ -449,6 +442,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         font-weight: 700;
         letter-spacing: 0.3px;
         text-transform: uppercase;
+        white-space: nowrap;
         color: #d9883b;
     }
 
@@ -462,12 +456,5 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         margin: 4px 0 0;
         color: var(--fg-subtle);
         font-size: 0.88em;
-    }
-
-    .foot {
-        margin-top: 16px;
-        color: var(--fg-subtle);
-        font-size: 0.72em;
-        line-height: 1.5;
     }
 </style>

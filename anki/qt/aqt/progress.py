@@ -292,7 +292,11 @@ class ProgressManager:
             self._showWin()
 
     def _showWin(self) -> None:
-        assert self._win is not None
+        # A deferred show-timer can fire after the dialog's parent was torn down
+        # (e.g. a modal opened/closed during a review transition), leaving _win as a
+        # deleted C++ object. Guard like _closeWin does, instead of asserting.
+        if self._win is None or sip.isdeleted(self._win):
+            return
         self._shown = time.monotonic()
         self._win.show()
 

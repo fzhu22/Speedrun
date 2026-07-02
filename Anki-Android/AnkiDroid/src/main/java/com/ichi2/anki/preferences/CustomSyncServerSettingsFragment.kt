@@ -24,22 +24,27 @@ import com.ichi2.anki.R
 import com.ichi2.anki.SyncPreferences
 import com.ichi2.anki.snackbar.showSnackbar
 import com.ichi2.preferences.VersatileTextPreference
+import com.ichi2.preferences.VersatileTextWithASwitchPreference
 import com.ichi2.utils.show
-import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class CustomSyncServerSettingsFragment : SettingsFragment() {
     override val preferenceResource = R.xml.preferences_custom_sync_server
     override val analyticsScreenNameConstant = "prefs.custom_sync_server"
 
     override fun initSubscreen() {
-        listOf(
-            R.string.custom_sync_server_collection_url_key,
-        ).forEach {
-            requirePreference<VersatileTextPreference>(it).continuousValidator =
-                VersatileTextPreference.Validator { value ->
-                    if (value.isNotEmpty()) value.toHttpUrl()
-                }
+        // Speedrun: the sync server is baked into the app and shared by every install, so
+        // pre-fill the URL, enable it, and lock the field. Per-user login is unchanged.
+        val urlPref =
+            requirePreference<VersatileTextWithASwitchPreference>(
+                R.string.custom_sync_server_collection_url_key,
+            )
+        urlPref.text = SyncPreferences.DEFAULT_SYNC_URL
+        preferenceManager.sharedPreferences?.let { prefs ->
+            if (!prefs.getBoolean(SyncPreferences.CUSTOM_SYNC_ENABLED, false)) {
+                prefs.edit { putBoolean(SyncPreferences.CUSTOM_SYNC_ENABLED, true) }
+            }
         }
+        urlPref.isEnabled = false
 
         requirePreference<VersatileTextPreference>(
             R.string.custom_sync_certificate_key,

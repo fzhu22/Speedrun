@@ -1,0 +1,4 @@
+# Keep the build context tiny: only the app + its deps.
+*
+!app.py
+!requirements.txt

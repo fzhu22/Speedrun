@@ -35,6 +35,12 @@ if TYPE_CHECKING:
     from aqt.editor import EditorMode
 
 
+# Speedrun: the self-hosted sync server that ships as the default for every install.
+# The URL is not secret, so it is baked in - users don't configure a server, but login
+# stays per-user (each person signs in to their own account). See SYNC.md / docs/syncserver.
+DEFAULT_SYNC_URL = "https://speedrun-sync-frank-1vls.fly.dev/"
+
+
 # Profile handling
 ##########################################################################
 # - Saves in pickles rather than json to easily store Qt window state.
@@ -717,8 +723,9 @@ create table if not exists profiles
         self.profile["middleClickPasteEnabled"] = val
 
     def custom_sync_url(self) -> str | None:
-        """A custom server provided by the user."""
-        return self.profile.get("customSyncUrl")
+        """The sync server to use, defaulting to the baked Speedrun server so every
+        install syncs there out of the box (login stays per-user)."""
+        return self.profile.get("customSyncUrl") or DEFAULT_SYNC_URL
 
     def set_custom_sync_url(self, url: str | None) -> None:
         if url != self.custom_sync_url():

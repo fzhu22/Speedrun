@@ -13,17 +13,7 @@ import aqt
 import aqt.main
 from anki.cards import Card
 from anki.speedrun import ai, anticrutch
-from anki.speedrun.cardcache import cached_card_type
-from anki.speedrun.cardtype import (
-    STRUGGLE_THRESHOLD,
-    heuristic_classify,
-    should_prompt_disconfirmer,
-)
-from anki.speedrun.disconfirmer import (
-    DISCONFIRMED_TAG,
-    NOTETYPE_NAME,
-    family_from_note,
-)
+from anki.speedrun.cardtype import STRUGGLE_THRESHOLD
 from anki.utils import strip_html
 from aqt.qt import *
 from aqt.utils import askUser, disable_help_button, showWarning, tooltip
@@ -51,6 +41,17 @@ def get_review_config(col) -> dict:
     return {**_DEFAULTS, **stored}
 
 
+def disconfirmer_enabled(col) -> bool:
+    """Whether the in-review disconfirmer prompt fires (default True). Off = ablation arm."""
+    return bool(get_review_config(col).get("enabled", False))
+
+
+def set_disconfirmer_enabled(col, enabled: bool) -> None:
+    stored = col.get_config(CONFIG_KEY, default=None) or {}
+    stored["enabled"] = bool(enabled)
+    col.set_config(CONFIG_KEY, stored)
+
+
 def _question(note) -> str:
     return strip_html(note.fields[0]) if note.fields else ""
 
@@ -60,17 +61,20 @@ def _answer(note) -> str:
 
 
 def maybe_prompt(mw: aqt.main.AnkiQt, card: Card, ease: int) -> None:
-    """If this was a miss on an eligible card, require a disconfirmer for it."""
+    """If this was a miss on an eligible card, require a disconfirmer for it.
+
+    All gating (the ablation toggle, trigger, MCAT scope, note-type and
+    already-disconfirmed skips, and the card-type/struggle heuristic) lives in the
+    shared Rust engine's ``speedrun_should_prompt_disconfirmer``, so desktop and
+    AnkiDroid decide identically. Here we only track the in-session Again-streak (a
+    UI-local signal) and show the modal when the engine says to.
+    """
     col = mw.col
     if col is None:
         return
-    cfg = get_review_config(col)
-    if not cfg.get("enabled", False):
-        return  # parked: the in-review disconfirmer modal is opt-in
-    trigger = cfg.get("trigger", "again_hard")
-    fail_eases = {1, 2} if trigger == "again_hard" else {1}
 
-    # Track the in-session miss streak first, so the current answer is reflected.
+    # Track the in-session miss streak (fed to the engine as session_misses; it
+    # adds the card's persistent lapses). Updated on every answer, before gating.
     cid = card.id
     if ease == 1:  # Again = failed to recall
         _again_streak[cid] = _again_streak.get(cid, 0) + 1
@@ -78,21 +82,6 @@ def maybe_prompt(mw: aqt.main.AnkiQt, card: Card, ease: int) -> None:
         _again_streak.pop(cid, None)
     # Hard (ease 2) leaves the streak unchanged: a soft miss, not a clean recall.
 
-    if ease not in fail_eases:
-        return
-
-    note = card.note()
-    if note.note_type()["name"] == NOTETYPE_NAME:
-        return  # don't ask for a disconfirmer of a disconfirmer card
-    if DISCONFIRMED_TAG in note.tags:
-        return  # this card already has one
-    if cfg.get("scope") == "mcat" and not family_from_note(note):
-        return  # scoped to MCAT-tagged study cards
-
-    # Gating (card-type classification + struggle threshold) now lives in the
-    # shared Rust engine, so desktop and AnkiDroid decide identically. Pass the
-    # in-session again-streak as session_misses; the engine adds the card's
-    # persistent lapses (misses = card.lapses + session_misses).
     session_misses = _again_streak.get(cid, 0)
     decision = col.speedrun_should_prompt_disconfirmer(
         card_id=card.id, rating=ease, session_misses=session_misses

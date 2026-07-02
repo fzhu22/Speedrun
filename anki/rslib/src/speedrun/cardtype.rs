@@ -13,7 +13,10 @@ use std::sync::LazyLock;
 use anki_proto::speedrun::SpeedrunShouldPromptRequest;
 use anki_proto::speedrun::SpeedrunShouldPromptResponse;
 use regex::Regex;
+use serde_json::Value;
 
+use super::disconfirmer::family_from_note;
+use super::disconfirmer::DISCONFIRMED_TAG;
 use super::disconfirmer::DISCONFIRMER_NOTETYPE_NAME;
 use crate::prelude::*;
 use crate::text::strip_html;
@@ -22,6 +25,23 @@ use crate::text::strip_html;
 /// the student as "clearly struggling" - at which point a disconfirmer is
 /// required regardless of card type. Mirrors `STRUGGLE_THRESHOLD` in the Python.
 pub(crate) const STRUGGLE_THRESHOLD: u32 = 2;
+
+/// Collection-config key holding the in-review disconfirmer settings. Written by
+/// the desktop (`qt/aqt/speedrun/review.py` / the Study Features dialog) and read
+/// here so BOTH platforms obey the same toggles; the config item syncs like any
+/// other collection config. Keys: `enabled`, `trigger`, `scope`, `struggle_after`.
+const REVIEW_CONFIG_KEY: &str = "speedrun_review";
+
+/// The engine-side view of the `speedrun_review` config (defaults mirror
+/// `_DEFAULTS` in the desktop `review.py`).
+pub(crate) struct ReviewConfig {
+    pub enabled: bool,
+    /// When true, only Again (1) counts as a miss; default counts Hard (2) too.
+    pub again_only: bool,
+    /// When true (default), only cards that map to an MCAT concept family prompt.
+    pub mcat_scope: bool,
+    pub struggle_after: u32,
+}
 
 /// Whether a card is a fact to recall (no disconfirmer) or reasoning/transfer (a
 /// disconfirmer helps).
@@ -125,6 +145,29 @@ pub(crate) fn should_prompt(kind: CardKind, rating: u32, misses: u32, struggle_t
     kind == CardKind::Application
 }
 
+impl ReviewConfig {
+    fn from_value(value: Option<Value>) -> Self {
+        let cfg = value.unwrap_or(Value::Null);
+        ReviewConfig {
+            enabled: cfg
+                .get("enabled")
+                .and_then(Value::as_bool)
+                .unwrap_or(true),
+            again_only: cfg.get("trigger").and_then(Value::as_str) == Some("again"),
+            mcat_scope: cfg
+                .get("scope")
+                .and_then(Value::as_str)
+                .map(|s| s == "mcat")
+                .unwrap_or(true),
+            struggle_after: cfg
+                .get("struggle_after")
+                .and_then(Value::as_u64)
+                .map(|v| v as u32)
+                .unwrap_or(STRUGGLE_THRESHOLD),
+        }
+    }
+}
+
 impl Collection {
     /// The card kind for a note: disconfirmer notes are application by
     /// construction; everything else is judged by the deterministic heuristic on
@@ -155,8 +198,18 @@ impl Collection {
         Ok(self.speedrun_note_card_kind(note)? == CardKind::Declarative)
     }
 
+    /// The engine-side in-review disconfirmer settings (synced collection config).
+    pub(crate) fn speedrun_review_config(&mut self) -> ReviewConfig {
+        ReviewConfig::from_value(self.get_config_optional::<Value, _>(REVIEW_CONFIG_KEY))
+    }
+
     /// Read-only: whether a missed card should prompt for a disconfirmer, and
     /// whether the student is struggling (misses = card.lapses + session_misses).
+    ///
+    /// All gating lives here in the shared engine so desktop and AnkiDroid decide
+    /// identically: the ablation toggle + trigger/scope config (synced collection
+    /// config), never prompting for a disconfirmer of a disconfirmer, skipping
+    /// cards that already have one, and the type/struggle heuristic.
     pub fn speedrun_should_prompt_disconfirmer(
         &mut self,
         input: SpeedrunShouldPromptRequest,
@@ -168,10 +221,41 @@ impl Collection {
             .get_note(card.note_id)?
             .or_not_found(card.note_id)?;
         let misses = card.lapses.saturating_add(input.session_misses);
-        let struggling = misses >= STRUGGLE_THRESHOLD;
+        let cfg = self.speedrun_review_config();
+        let struggling = misses >= cfg.struggle_after;
+
+        let no_prompt = |struggling| SpeedrunShouldPromptResponse {
+            should_prompt: false,
+            struggling,
+        };
+
+        // The ablation toggle (spec section 8): feature off -> never prompt.
+        if !cfg.enabled {
+            return Ok(no_prompt(struggling));
+        }
+        // Trigger config: "again" restricts misses to Again(1) only.
+        if cfg.again_only && input.rating != 1 {
+            return Ok(no_prompt(struggling));
+        }
+        let nt = self
+            .get_notetype(note.notetype_id)?
+            .or_invalid("missing note type")?;
+        // Never ask for a disconfirmer of a disconfirmer card.
+        if nt.name == DISCONFIRMER_NOTETYPE_NAME {
+            return Ok(no_prompt(struggling));
+        }
+        // This card already has one.
+        if note.tags.iter().any(|t| t == DISCONFIRMED_TAG) {
+            return Ok(no_prompt(struggling));
+        }
+        // Scoped to MCAT study cards (cards that map to a concept family).
+        if cfg.mcat_scope && family_from_note(&note, &nt).is_none() {
+            return Ok(no_prompt(struggling));
+        }
+
         let kind = self.speedrun_note_card_kind(&note)?;
         Ok(SpeedrunShouldPromptResponse {
-            should_prompt: should_prompt(kind, input.rating, misses, STRUGGLE_THRESHOLD),
+            should_prompt: should_prompt(kind, input.rating, misses, cfg.struggle_after),
             struggling,
         })
     }
@@ -244,5 +328,67 @@ mod test {
         // A clean recall (Good) never prompts, even for an application card.
         let res = col.speedrun_should_prompt_disconfirmer(req(app, 3, 0)).unwrap();
         assert!(!res.should_prompt);
+    }
+
+    fn set_review_cfg(col: &mut Collection, value: serde_json::Value) {
+        col.set_config_json("speedrun_review", &value, false).unwrap();
+    }
+
+    /// (e) The ablation toggle: `speedrun_review.enabled = false` (synced
+    /// collection config, set from the Study Features dialog) silences the
+    /// prompt on every platform, and re-enabling restores it.
+    #[test]
+    fn config_toggle_gates_the_prompt() {
+        let mut col = Collection::new();
+        let app = add_card(
+            &mut col,
+            "Why does a competitive inhibitor raise Km but not Vmax?",
+            "It competes at the active site, so more substrate overcomes it.",
+            &["MCAT::BioBiochem::1A"],
+        );
+
+        // Default (no config): an application miss prompts.
+        assert!(col.speedrun_should_prompt_disconfirmer(req(app, 1, 0)).unwrap().should_prompt);
+
+        // Feature off -> never prompt (but struggle is still reported honestly).
+        set_review_cfg(&mut col, serde_json::json!({ "enabled": false }));
+        let res = col.speedrun_should_prompt_disconfirmer(req(app, 1, 3)).unwrap();
+        assert!(!res.should_prompt);
+        assert!(res.struggling);
+
+        // Re-enable -> prompts again.
+        set_review_cfg(&mut col, serde_json::json!({ "enabled": true }));
+        assert!(col.speedrun_should_prompt_disconfirmer(req(app, 1, 0)).unwrap().should_prompt);
+    }
+
+    /// (f) Trigger config "again" restricts the miss to Again(1): a Hard(2) on an
+    /// application card no longer prompts.
+    #[test]
+    fn trigger_again_only_ignores_hard() {
+        let mut col = Collection::new();
+        let app = add_card(
+            &mut col,
+            "Why does the reaction slow as product accumulates?",
+            "Le Chatelier: product build-up shifts the equilibrium back toward reactants.",
+            &["MCAT::ChemPhys::5E"],
+        );
+        set_review_cfg(&mut col, serde_json::json!({ "trigger": "again" }));
+        // Hard(2) is not a miss under "again" -> no prompt.
+        assert!(!col.speedrun_should_prompt_disconfirmer(req(app, 2, 0)).unwrap().should_prompt);
+        // Again(1) still prompts.
+        assert!(col.speedrun_should_prompt_disconfirmer(req(app, 1, 0)).unwrap().should_prompt);
+    }
+
+    /// (g) A card already carrying the disconfirmed tag is never re-prompted.
+    #[test]
+    fn already_disconfirmed_card_is_skipped() {
+        let mut col = Collection::new();
+        let app = add_card(
+            &mut col,
+            "Why does a noncompetitive inhibitor lower Vmax?",
+            "It binds an allosteric site and reduces functional enzyme.",
+            &["MCAT::BioBiochem::1A", DISCONFIRMED_TAG],
+        );
+        assert!(!col.speedrun_should_prompt_disconfirmer(req(app, 1, 0)).unwrap().should_prompt);
     }
 }

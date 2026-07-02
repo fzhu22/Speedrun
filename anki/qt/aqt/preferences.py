@@ -216,7 +216,13 @@ class Preferences(QDialog):
         self.form.autoSyncMedia.setChecked(
             self.mw.pm.periodic_sync_media_minutes() != 0
         )
+        # Speedrun: the sync server is baked in and shared by every install, so the
+        # field is pre-filled and locked (per-user login is unchanged).
         self.form.custom_sync_url.setText(self.mw.pm.custom_sync_url())
+        self.form.custom_sync_url.setReadOnly(True)
+        self.form.custom_sync_url.setToolTip(
+            "Speedrun uses a built-in sync server; sign in with your own account."
+        )
         self.form.network_timeout.setValue(self.mw.pm.network_timeout())
 
         self.form.check_for_updates.setChecked(self.mw.pm.check_for_updates())

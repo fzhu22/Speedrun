@@ -21,6 +21,9 @@ from anki.utils import strip_html
 
 CONFIG_KEY = "speedrun_fading"
 CRUTCH_KEY = "speedrun_ai_crutch"
+#: Collection-config flag (default on). When off, per-family support-fading updates are
+#: skipped - the "feature-off" arm of the spec section-8 ablation.
+FADING_ENABLED_KEY = "speedrun_fading_enabled"
 #: Per-family fading rung, written as a syncable tag on reviewed application notes so the
 #: cross-platform review tier can read it (SPOV 4: desktop prepare -> syncable artifact).
 RUNG_TAG_PREFIX = "speedrun_rung"
@@ -32,6 +35,16 @@ def load_state(col) -> Dict:
 
 def save_state(col, state: Dict) -> None:
     col.set_config(CONFIG_KEY, state)
+
+
+def fading_enabled(col) -> bool:
+    """Whether per-family support-fading runs (default True). Off = ablation arm."""
+    val = col.get_config(FADING_ENABLED_KEY, default=None)
+    return True if val is None else bool(val)
+
+
+def set_fading_enabled(col, enabled: bool) -> None:
+    col.set_config(FADING_ENABLED_KEY, bool(enabled))
 
 
 def load_crutch(col) -> Dict:
@@ -96,6 +109,10 @@ def record_answer(col, card, ease: int) -> None:
         crutch = load_crutch(col)
         anticrutch.record_outcome(crutch, assisted=ASSISTED_TAG in note.tags, correct=success)
         save_crutch(col, crutch)
+
+    # Per-family support-fading (SPOV 10). Skippable for the section-8 ablation arm.
+    if not fading_enabled(col):
+        return
 
     # The fading ladder now lives in the shared Rust engine (Stage 2): it
     # normalises the family key to the AAMC content-category code the dashboard

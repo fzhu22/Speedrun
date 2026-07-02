@@ -24,6 +24,7 @@ import androidx.core.content.edit
 import com.ichi2.anki.AnkiDroidApp
 import com.ichi2.anki.BuildConfig
 import com.ichi2.anki.R
+import com.ichi2.anki.SyncPreferences
 import com.ichi2.anki.cardviewer.TapGestureMode
 import com.ichi2.anki.common.preferences.AnimationPreferences
 import com.ichi2.anki.common.preferences.sharedPrefs
@@ -261,8 +262,14 @@ open class PrefsRepository(
     //region Custom sync server
 
     val customSyncCertificate by stringPref(R.string.custom_sync_certificate_key)
-    val customSyncUri by stringPref(R.string.custom_sync_server_collection_url_key)
-    val isCustomSyncEnabled by booleanPref(R.string.custom_sync_server_enabled_key, defaultValue = false)
+
+    // Speedrun: default to the baked sync server so every install syncs there out of the
+    // box (login stays per-user). The settings field is pre-filled + locked to match.
+    val customSyncUri by stringPref(
+        R.string.custom_sync_server_collection_url_key,
+        defaultValue = SyncPreferences.DEFAULT_SYNC_URL,
+    )
+    val isCustomSyncEnabled by booleanPref(R.string.custom_sync_server_enabled_key, defaultValue = true)
     var isBackgroundEnabled by booleanPref(R.string.pref_deck_picker_background_key, defaultValue = false)
 
     //endregion

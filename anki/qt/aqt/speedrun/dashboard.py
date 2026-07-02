@@ -15,7 +15,7 @@ import aqt.main
 from anki.speedrun import seeding
 from aqt.qt import *
 from aqt.utils import disable_help_button, restoreGeom, saveGeom, tooltip
-from aqt.webview import AnkiWebView
+from aqt.webview import AnkiWebView, AnkiWebViewKind
 
 DIALOG_NAME = "SpeedrunDashboard"
 
@@ -42,11 +42,27 @@ class SpeedrunDashboard(QDialog):
         buttons.addStretch()
         layout.addLayout(buttons)
 
-        self.web = AnkiWebView(self)
+        # SPEEDRUN kind grants the page backend API access (for the speedrun_dashboard
+        # RPC); without it the request is rejected with 403.
+        self.web = AnkiWebView(self, kind=AnkiWebViewKind.SPEEDRUN)
         layout.addWidget(self.web)
 
+        self._ready = False
         self.refresh()
         self.show()
+        self._ready = True
+
+    def event(self, evt: QEvent) -> bool:
+        # Auto-refresh when the user switches back to the dashboard, so reviews done in
+        # the main window are reflected without having to press Refresh.
+        if (
+            evt is not None
+            and evt.type() == QEvent.Type.WindowActivate
+            and getattr(self, "_ready", False)
+            and self.web is not None
+        ):
+            self.refresh()
+        return super().event(evt)
 
     def refresh(self) -> None:
         # Speedrun: render the shared SvelteKit dashboard page - the same page the

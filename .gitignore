@@ -24,6 +24,11 @@ anki/docs/syncserver/fly/anki-sync-server
 **/.cxx/
 *.apkg
 *.colpkg
+# Mobile build output workspace
+/Anki-Android/out/
+
+# --- Local collection backups (user data, never commit) ---
+/collection_backup_*/
 
 # --- Local Cursor agent state (keep .cursor/skills and .cursor/rules) ---
 /.cursor/plans/

@@ -22,7 +22,13 @@ impl BuildAction for ConfigureBuild {
     fn files(&mut self, build: &mut impl FilesHandle) {
         build.add_inputs("cmd", inputs![":build:configure_bin"]);
         // reconfigure when external inputs change
-        build.add_inputs("", inputs!["$builddir/env", ".version", ".git"]);
+        build.add_inputs("", inputs!["$builddir/env", ".version"]);
+        // A .git dir triggers a reconfigure (submodule/version restat) when present.
+        // A vendored or flattened checkout may not have one, so only require it if it
+        // exists - otherwise ninja aborts with ".git ... missing and no known rule".
+        if std::path::Path::new(".git").exists() {
+            build.add_inputs("", inputs![".git"]);
+        }
         build.add_outputs("", ["build.ninja"])
     }
 

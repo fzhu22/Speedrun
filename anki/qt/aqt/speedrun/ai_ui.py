@@ -7,8 +7,6 @@ Network work runs off the main thread; collection writes happen back on the main
 
 from __future__ import annotations
 
-import os
-
 import aqt
 import aqt.main
 from anki.speedrun import ai, ai_eval, cardcache
@@ -19,32 +17,6 @@ from aqt.qt import *
 from aqt.utils import showInfo, tooltip
 
 
-KEY_FILENAME = "speedrun_ai_key"  # stored in the profile folder; NOT synced
-
-
-def _key_path(mw: aqt.main.AnkiQt) -> str:
-    return os.path.join(mw.pm.profileFolder(), KEY_FILENAME)
-
-
-def load_profile_key(mw: aqt.main.AnkiQt) -> None:
-    """On startup, load a locally-stored key into the session (if env isn't set)."""
-    if ai.api_key():
-        return
-    try:
-        path = _key_path(mw)
-        if os.path.exists(path):
-            with open(path, encoding="utf-8") as fh:
-                ai.set_runtime_key(fh.read().strip())
-    except Exception as exc:
-        print("speedrun ai: could not load key file:", exc)
-
-
-def save_profile_key(mw: aqt.main.AnkiQt, key: str) -> None:
-    with open(_key_path(mw), "w", encoding="utf-8") as fh:
-        fh.write(key.strip())
-    ai.set_runtime_key(key)
-
-
 def show_ai_settings(mw: aqt.main.AnkiQt) -> None:
     cfg = ai.get_config(mw.col)
     dlg = QDialog(mw)
@@ -53,40 +25,15 @@ def show_ai_settings(mw: aqt.main.AnkiQt) -> None:
 
     enabled = QCheckBox("Enable AI features (classification + hints)")
     enabled.setChecked(bool(cfg["enabled"]))
-    model = QLineEdit(cfg["model"])
-    base = QLineEdit(cfg["base_url"])
-
-    key_edit = QLineEdit()
-    key_edit.setEchoMode(QLineEdit.EchoMode.Password)
-    key_edit.setPlaceholderText(
-        "key already set - leave blank to keep" if ai.api_key() else "paste API key (stored locally, never synced)"
-    )
-    load_btn = QPushButton("Load from file...")
-
-    def on_load() -> None:
-        path, _ = QFileDialog.getOpenFileName(dlg, "Choose an API key file")
-        if path:
-            try:
-                with open(path, encoding="utf-8") as fh:
-                    key_edit.setText(fh.read().strip())
-            except Exception as exc:
-                showInfo(f"Could not read file: {exc}", parent=dlg)
-
-    qconnect(load_btn.clicked, on_load)
-    key_row = QHBoxLayout()
-    key_row.addWidget(key_edit)
-    key_row.addWidget(load_btn)
-    key_widget = QWidget()
-    key_widget.setLayout(key_row)
-
     form.addRow(enabled)
-    form.addRow("Model:", model)
-    form.addRow("Base URL:", base)
-    form.addRow("API key:", key_widget)
+
+    # No API key lives in the app: requests route through the hosted Speedrun proxy,
+    # which holds the real key server-side. Nothing to configure here beyond on/off.
+    status = "available" if ai.ai_available(mw.col) else "off (deterministic fallback)"
     form.addRow(
         QLabel(
-            f"Status: {'key set' if ai.api_key() else 'no key'} "
-            f"(env {ai.KEY_ENV_VAR} or a local profile file)."
+            "AI requests route through the hosted Speedrun proxy; no API key is stored "
+            f"in the app.\nCurrently {status}."
         )
     )
 
@@ -97,14 +44,7 @@ def show_ai_settings(mw: aqt.main.AnkiQt) -> None:
     qconnect(buttons.accepted, dlg.accept)
     qconnect(buttons.rejected, dlg.reject)
     if dlg.exec():
-        ai.set_config(
-            mw.col,
-            enabled=enabled.isChecked(),
-            model=model.text().strip() or None,
-            base_url=base.text().strip() or None,
-        )
-        if key_edit.text().strip():
-            save_profile_key(mw, key_edit.text())
+        ai.set_config(mw.col, enabled=enabled.isChecked())
         tooltip("Saved Speedrun AI settings.", parent=mw)
 
 

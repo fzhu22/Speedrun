@@ -12,12 +12,17 @@ import aqt
 import aqt.main
 from aqt import gui_hooks
 from aqt.qt import *
-from aqt.utils import tooltip
 
 from .authoring import DisconfirmerDialog
 from .dashboard import SpeedrunDashboard
+from .dev_portal import SpeedrunDevPortal
 
-__all__ = ["setup_speedrun_menu", "SpeedrunDashboard", "DisconfirmerDialog"]
+__all__ = [
+    "setup_speedrun_menu",
+    "SpeedrunDashboard",
+    "DisconfirmerDialog",
+    "SpeedrunDevPortal",
+]
 
 _initialized = False
 
@@ -47,25 +52,17 @@ def setup_speedrun_menu(mw: aqt.main.AnkiQt) -> None:
     qconnect(settings_action.triggered, lambda: ai_ui.show_ai_settings(mw))
     mw.form.menuTools.addAction(settings_action)
 
-    from anki.speedrun import pretest as _pretest
+    from . import feature_settings
 
-    pretest_action = QAction("Pretest-first mode (new cards)", mw)
-    pretest_action.setCheckable(True)
-    pretest_action.setChecked(_pretest.pretest_enabled(mw.col) if mw.col else True)
+    features_action = QAction("Speedrun Study Features...", mw)
+    qconnect(
+        features_action.triggered, lambda: feature_settings.show_speedrun_features(mw)
+    )
+    mw.form.menuTools.addAction(features_action)
 
-    def _toggle_pretest(checked: bool) -> None:
-        if mw.col is None:
-            return
-        _pretest.set_pretest_enabled(mw.col, checked)
-        tooltip(
-            "Pretest-first mode ON (new cards force a guess + feedback)."
-            if checked
-            else "Pretest-first mode OFF (ablation: new cards seed as plain Basic).",
-            parent=mw,
-        )
-
-    qconnect(pretest_action.toggled, _toggle_pretest)
-    mw.form.menuTools.addAction(pretest_action)
+    portal_action = QAction("Speedrun Dev Portal", mw)
+    qconnect(portal_action.triggered, lambda: aqt.dialogs.open("SpeedrunDevPortal", mw))
+    mw.form.menuTools.addAction(portal_action)
 
 
 def _init_once() -> None:
@@ -75,8 +72,8 @@ def _init_once() -> None:
     _initialized = True
     aqt.dialogs.register_dialog("SpeedrunDashboard", SpeedrunDashboard)
     aqt.dialogs.register_dialog("SpeedrunAuthoring", DisconfirmerDialog)
+    aqt.dialogs.register_dialog("SpeedrunDevPortal", SpeedrunDevPortal)
     gui_hooks.profile_did_open.append(_ensure_notetype)
-    gui_hooks.profile_did_open.append(_load_ai_key)
     gui_hooks.reviewer_did_answer_card.append(_on_answer_card)
 
     # Card-type classification runs in the study loop (background, on deck open) so the
@@ -97,18 +94,6 @@ def _ensure_notetype() -> None:
         mw.col.speedrun_ensure_notetypes()
     except Exception as exc:  # never break startup
         print("speedrun: ensure_notetype failed:", exc)
-
-
-def _load_ai_key() -> None:
-    mw = aqt.mw
-    if mw is None:
-        return
-    try:
-        from . import ai_ui
-
-        ai_ui.load_profile_key(mw)
-    except Exception as exc:
-        print("speedrun: load ai key failed:", exc)
 
 
 def _on_answer_card(reviewer, card, ease) -> None:

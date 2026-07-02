@@ -35,6 +35,9 @@ const ADVANCE_TRANSFER: u32 = 1;
 const RUNG_ORDER: [&str; 4] = ["L3", "L2", "L1", "L0"];
 /// Config key holding the per-family fading state (`cc_code -> {rung,unaided,transfer}`).
 const FADING_CONFIG_KEY: &str = "speedrun_fading";
+/// Collection-config flag (synced) that turns support-fading on/off, written by the
+/// Study Features ablation dialog. Read here so BOTH platforms obey it. Default on.
+const FADING_ENABLED_KEY: &str = "speedrun_fading_enabled";
 /// Per-family rung written as a syncable tag so the review tier can read it.
 const RUNG_TAG_PREFIX: &str = "speedrun_rung";
 
@@ -165,6 +168,19 @@ impl Collection {
         &mut self,
         input: SpeedrunRecordReviewRequest,
     ) -> Result<SpeedrunRecordReviewResponse> {
+        // Ablation toggle (spec section 8): support-fading off -> no-op on every
+        // platform. Read from synced collection config (default on).
+        let fading_on = self
+            .get_config_optional::<bool, _>(FADING_ENABLED_KEY)
+            .unwrap_or(true);
+        if !fading_on {
+            return Ok(SpeedrunRecordReviewResponse {
+                family: String::new(),
+                rung: String::new(),
+                changed: false,
+            });
+        }
+
         let cid = CardId(input.card_id);
         let card = self.storage.get_card(cid)?.or_not_found(cid)?;
         let note = self
@@ -362,6 +378,34 @@ mod test {
                 .any(|t| t.starts_with("speedrun_rung::")),
             "declarative cards must not get a rung tag"
         );
+    }
+
+    /// (d) The ablation toggle: `speedrun_fading_enabled = false` makes
+    /// record_review a no-op (no state, no rung tag) on every platform.
+    #[test]
+    fn disabled_flag_skips_fading() {
+        let mut col = Collection::new();
+        let cid = add_card(
+            &mut col,
+            "Why does raising the pH shift the equilibrium?",
+            "The conjugate base is favoured across the buffer region.",
+            &["MCAT::BioBiochem::1A", "speedrun_transfer"],
+        );
+        col.set_config_json("speedrun_fading_enabled", &false, false).unwrap();
+
+        let res = col.speedrun_record_review(req(cid, 3)).unwrap();
+        assert!(!res.changed);
+        assert!(res.family.is_empty());
+        assert!(fading_cfg(&col).get("1A").is_none(), "no ladder state when disabled");
+        assert!(
+            !note_tags(&mut col, cid).iter().any(|t| t.starts_with("speedrun_rung::")),
+            "no rung tag when disabled"
+        );
+
+        // Re-enable -> the ladder resumes writing.
+        col.set_config_json("speedrun_fading_enabled", &true, false).unwrap();
+        let res = col.speedrun_record_review(req(cid, 3)).unwrap();
+        assert_eq!(res.family, "1A");
     }
 
     /// The pure state machine: a miss at the most-supported rung cannot regress

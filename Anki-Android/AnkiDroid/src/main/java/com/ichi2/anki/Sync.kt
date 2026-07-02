@@ -52,6 +52,11 @@ object SyncPreferences {
     const val CURRENT_SYNC_URI = "currentSyncUri"
     const val CUSTOM_SYNC_URI = "syncBaseUrl"
     const val CUSTOM_SYNC_ENABLED = CUSTOM_SYNC_URI + VersatileTextWithASwitchPreference.SWITCH_SUFFIX
+
+    // Speedrun: the self-hosted sync server baked into every install. The URL is not
+    // secret, so it ships as the default and the field is locked; login stays per-user
+    // (each person signs in to their own account). See SYNC.md / docs/syncserver.
+    const val DEFAULT_SYNC_URL = "https://speedrun-sync-frank-1vls.fly.dev/"
 }
 
 enum class ConflictResolution {

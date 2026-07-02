@@ -25,6 +25,59 @@ next thing to study. A confident number without those is a guess in a nice font.
 give-up rule is explicit and enforced in the engine (default: readiness abstains below
 50% coverage or under 200 graded reviews).
 
+## Getting started (for testers)
+
+You need two things on each device: the **app**, and the **shared sync login** (so the
+desktop and phone show the same cards). You do **not** configure any servers or API keys
+- the self-hosted sync server URL and the AI service are already baked into the builds.
+
+From the maintainer, get:
+
+- the **desktop installer** (`anki-*-win-x64.msi` on Windows - the Speedrun build is a
+  fork, so it installs as "Anki") and the **Android app** (`AnkiDroid-play-*-debug.apk`) -
+  these are attached to the repo's **Releases** (they are not committed to the repo). Prefer
+  to build them yourself? See [Building from source](#building-from-source-developers).
+- your **sync username + password** (the shared self-hosted sync account - this is *not*
+  an AnkiWeb account).
+
+### Desktop (Windows)
+
+1. **Install & launch:** run the `anki-*-win-x64.msi` installer, then launch **Anki** (the
+   Speedrun build) from the Start menu. (Or run from source: from `anki/`, `.\run`.)
+2. **Sign in to sync:** click **Sync** (top-right) and log in with the sync
+   **username/password** you were given. The server URL is already filled in and locked
+   under `Tools > Preferences > Syncing`, so there is nothing to type there.
+3. On the **first sync**, choose **Download from server** to pull the shared MCAT deck.
+4. **Open the dashboard:** `Tools > Speedrun Dashboard` (the three scores, coverage map,
+   and single best next thing to study).
+
+### Mobile (Android phone or emulator)
+
+1. **Install the APK:** pick the file matching the device - `arm64-v8a` for most phones,
+   `x86_64` for an emulator.
+   - On a phone: allow "Install unknown apps" for your browser/file manager, then open the
+     `.apk`.
+   - On an emulator or via USB: `adb install AnkiDroid-play-x86_64-debug.apk`.
+2. **Sign in to sync:** `Settings > Sync > AnkiWeb account` and log in with the **same**
+   sync username/password. The custom sync server is already enabled, filled in, and
+   locked under `Settings > Sync > Custom sync server`.
+3. On the **first sync** (the circular-arrows icon), choose **Download from server**.
+4. **Open the dashboard:** nav drawer (the ☰ menu, top-left) -> **Speedrun**.
+
+### Using it
+
+- Study a deck; your grades feed the **Memory** score (FSRS). Miss an application-style
+  card and you'll get the disconfirmer prompt.
+- The three scores never blend, and **Readiness** stays hidden until there's enough
+  evidence (>=50% coverage and >=200 graded reviews) - that's the honesty rule, not a bug.
+- **AI** (card-type classification + severe-test hints) works out of the box through a
+  hosted proxy - no API key needed on your side. Toggle it under
+  `Tools > Speedrun AI Settings...`, or turn individual features on/off for ablation under
+  `Tools > Speedrun Study Features...`.
+- **Sync tip:** Anki forces a one-directional choice if both devices changed since the
+  last sync, so **sync right after each study session** on each device to avoid conflicts.
+  Full sync details are in [SYNC.md](SYNC.md).
+
 ## Repository layout (monorepo)
 
 This repository combines both apps so they can be cloned and reviewed together:
@@ -62,7 +115,11 @@ engine.
   [anki/rslib/src/speedrun/dashboard.rs](anki/rslib/src/speedrun/dashboard.rs), with the
   shared UI at [anki/ts/routes/speedrun/+page.svelte](anki/ts/routes/speedrun/+page.svelte).
 
-## Building
+## Building from source (developers)
+
+Testers can skip this section - use the prebuilt installer/APK from Releases (see
+[Getting started](#getting-started-for-testers)). Build from source only if you're
+modifying the app.
 
 ### Desktop (`anki/`)
 
@@ -89,14 +146,21 @@ locally built `rsdroid` backend:
    `Anki-Android-Backend`, build `librsdroid` from `anki/`, and place the AAR).
 2. `Anki-Android/local.properties` sets `local_backend=true` so the build uses that AAR
    instead of the prebuilt Maven artifact.
-3. Build + install the app: from `Anki-Android/`, `gradlew installPlayDebug`.
+3. Build + install the app: from `Anki-Android/`, `gradlew installPlayDebug` (installs to
+   a connected device/emulator), or `gradlew assemblePlayDebug` to produce shareable APKs
+   in `Anki-Android/AnkiDroid/build/outputs/apk/play/debug/` (split per ABI).
 
 Sync between the two apps uses a self-hosted `anki-sync-server` - see [SYNC.md](SYNC.md).
 
-## Running with AI off
+## AI (optional, on by default)
 
-Speedrun runs and gives scores with AI switched off; the AI lane is a keyless-fallback
-add-on and is disabled for the Wednesday build (no model calls, no generated cards).
+AI runs through a hosted proxy that holds the OpenAI key **server-side**, so no API key
+ships in the app and testers configure nothing. The AI lane only classifies card types and
+offers severe-test hints - it never writes cards and never grades. If the proxy is
+unreachable, or you switch AI off (`Tools > Speedrun AI Settings...`), every AI step
+degrades to a deterministic fallback (heuristic classification / template hint), so the app
+and all three scores work unchanged. Proxy service + deploy notes:
+[anki/docs/aiproxy/](anki/docs/aiproxy/).
 
 ## License
 

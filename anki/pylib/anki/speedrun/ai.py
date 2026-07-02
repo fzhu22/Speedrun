@@ -2,10 +2,13 @@
 
 AI never writes the card or the disconfirmer and never grades - it only classifies and
 gives severe-test hints, each carrying provenance. Everything degrades to a
-deterministic path when AI is off (no key / disabled), so the app runs keyless.
+deterministic path when AI is off, so the app runs with no AI configured.
 
-Provider is OpenAI-compatible. The API key is read from the environment
-(``SPEEDRUN_AI_KEY``) and is never written to the synced collection.
+Requests go through the Speedrun AI proxy (``docs/aiproxy/``), which holds the real
+OpenAI key server-side; the client only ever ships the proxy URL + a revocable app
+token, so no OpenAI key lives in the app or the synced collection. For local
+development, setting ``SPEEDRUN_AI_KEY`` (a real key) overrides the proxy and talks to
+OpenAI directly.
 """
 
 from __future__ import annotations
@@ -22,14 +25,21 @@ from anki.speedrun.cardtype import CardType, heuristic_classify
 from anki.speedrun.models import Provenance
 
 AI_CONFIG_KEY = "speedrun_ai"
-KEY_ENV_VAR = "SPEEDRUN_AI_KEY"
+KEY_ENV_VAR = "SPEEDRUN_AI_KEY"  # dev override: a real key -> talk to OpenAI directly
+
+# Baked, non-secret client config for the hosted AI proxy (see docs/aiproxy/README.md).
+# The real OpenAI key lives ONLY on the proxy as a server secret; the client ships this
+# proxy URL + a revocable app token. Fill these in after deploying the proxy. Left empty
+# they leave AI off (deterministic fallback), so the app still runs with nothing set.
+DEFAULT_PROXY_URL = "https://speedrun-ai-frank-pbr9.fly.dev/v1"  # deployed proxy (docs/aiproxy)
+APP_TOKEN = "MYrFmMjbYCwAZ0vPnh9CxZkrfED7jZmdYful5uRMC6U"  # the SPEEDRUN_PROXY_TOKEN configured on the proxy (baked below)
+
 _DEFAULTS = {
-    # On by default; with no API key the client resolves to None and every AI op falls
-    # back to its deterministic path (heuristic classify / template hint), so the app
-    # still runs keyless and AI-off per the spec.
+    # On by default; when nothing is configured the client resolves to None and every
+    # AI op falls back to its deterministic path (heuristic classify / template hint),
+    # so the app still runs AI-off per the spec.
     "enabled": True,
     "model": "gpt-4.1-mini",
-    "base_url": "https://api.openai.com/v1",
 }
 
 #: Fixed few-shot examples for the classifier prompt - kept DISJOINT from the eval gold
@@ -101,28 +111,37 @@ def get_config(col) -> dict:
     return {**_DEFAULTS, **stored}
 
 
-def set_config(col, *, enabled=None, model=None, base_url=None) -> None:
+def set_config(col, *, enabled=None, model=None) -> None:
     cfg = get_config(col)
     if enabled is not None:
         cfg["enabled"] = bool(enabled)
     if model:
         cfg["model"] = model
-    if base_url:
-        cfg["base_url"] = base_url
     col.set_config(AI_CONFIG_KEY, cfg)
 
 
 def api_key() -> Optional[str]:
-    key = os.environ.get(KEY_ENV_VAR, "").strip()
-    return key or None
+    """The bearer token the client presents: a real key from the env (dev override),
+    else the baked proxy app token. None when neither is set, which turns AI off."""
+    env = os.environ.get(KEY_ENV_VAR, "").strip()
+    if env:
+        return env
+    return APP_TOKEN or None
+
+
+def base_url() -> str:
+    """Where requests go: OpenAI directly when a real dev key is in the env, otherwise
+    the hosted proxy (which injects the real key server-side)."""
+    if os.environ.get(KEY_ENV_VAR, "").strip():
+        return os.environ.get("SPEEDRUN_AI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    if DEFAULT_PROXY_URL:
+        return DEFAULT_PROXY_URL.rstrip("/")
+    return "https://api.openai.com/v1"
 
 
 def set_runtime_key(key: str) -> None:
-    """Make a key available for this session via the env var.
-
-    The key is never written to the synced collection; the GUI persists it in a local,
-    profile-only file and calls this on startup.
-    """
+    """Dev override: make a real key available for this session via the env var, which
+    routes calls straight to OpenAI (bypassing the proxy)."""
     if key and key.strip():
         os.environ[KEY_ENV_VAR] = key.strip()
 
@@ -137,7 +156,7 @@ def resolve_client(col) -> Optional[LLMClient]:
         return None
     cfg = get_config(col)
     return OpenAICompatibleClient(
-        base_url=cfg["base_url"], model=cfg["model"], api_key=api_key()
+        base_url=base_url(), model=cfg["model"], api_key=api_key()
     )
 
 
