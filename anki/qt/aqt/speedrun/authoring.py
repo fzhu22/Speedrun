@@ -37,9 +37,9 @@ class DisconfirmerDialog(QDialog):
         self.mw = mw
         self.col = mw.col
         self._assisted = False
-        self.setWindowTitle("Add Disconfirmer Card")
+        self.setWindowTitle("Add a card")
         disable_help_button(self)
-        restoreGeom(self, "speedrunAuthoring", default_size=(640, 760))
+        restoreGeom(self, "speedrunAuthoringV2", default_size=(560, 470))
         self._build_ui()
         self._on_family_changed()
         self.show()
@@ -59,65 +59,72 @@ class DisconfirmerDialog(QDialog):
         for code, title in self._content_categories():
             self.family.addItem(f"{code} - {title}", code)
         qconnect(self.family.currentIndexChanged, lambda _i: self._on_family_changed())
-        top.addRow("Concept family:", self.family)
+        top.addRow("Topic:", self.family)
         layout.addLayout(top)
 
-        # Fading guidance for the selected family
+        # One-line fading guidance for the selected family (details in tooltips).
         self.guidance = QLabel()
         self.guidance.setWordWrap(True)
         self.guidance.setTextFormat(Qt.TextFormat.RichText)
         self.guidance.setStyleSheet(
             "QLabel { background: rgba(110,168,254,.12);"
-            " border: 1px solid rgba(110,168,254,.4); border-radius: 8px; padding: 10px; }"
+            " border: 1px solid rgba(110,168,254,.4); border-radius: 8px; padding: 8px; }"
         )
         layout.addWidget(self.guidance)
 
-        # Card fields
+        # Core fields: the reworded question, its answer, and the disconfirmer.
         form = QFormLayout()
         self.swapped = QPlainTextEdit()
-        self.swapped.setPlaceholderText("Reworded, exam-style question (the swapped cover-story)")
-        self.swapped.setFixedHeight(64)
+        self.swapped.setPlaceholderText("A reworded, exam-style version of the question")
+        self.swapped.setFixedHeight(56)
         form.addRow("Question:", self.swapped)
 
         self.answer = QLineEdit()
         form.addRow("Answer:", self.answer)
 
-        self.original = QPlainTextEdit()
-        self.original.setPlaceholderText("The original question's surface/context (to prove a real perturbation)")
-        self.original.setFixedHeight(52)
-        form.addRow("Original cover-story:", self.original)
-
-        self.principle = QPlainTextEdit()
-        self.principle.setPlaceholderText("The deep principle in your own words")
-        self.principle.setFixedHeight(52)
-        form.addRow("Principle:", self.principle)
-
-        self.trap = QLineEdit()
-        self.trap.setPlaceholderText("The lure / misconception that caught you")
-        form.addRow("Trap:", self.trap)
-
         self.disconfirmer = QPlainTextEdit()
-        self.disconfirmer.setPlaceholderText("Required: what ONE fact, if true, would flip the answer?")
-        self.disconfirmer.setFixedHeight(52)
-        form.addRow("Disconfirmer*:", self.disconfirmer)
+        self.disconfirmer.setPlaceholderText("What ONE fact, if true, would flip the answer?")
+        self.disconfirmer.setFixedHeight(56)
+        form.addRow("One fact that flips it*:", self.disconfirmer)
 
         self.hint_btn = QPushButton("Get a hint")
+        self.hint_btn.setFlat(True)
         qconnect(self.hint_btn.clicked, self._on_hint)
         self.hint_label = QLabel()
         self.hint_label.setWordWrap(True)
         self.hint_label.setStyleSheet("QLabel { font-style: italic; opacity: .85; }")
         form.addRow(self.hint_btn, self.hint_label)
-
-        self.boundary = QLineEdit()
-        self.boundary.setPlaceholderText("An edge case against your stated principle")
-        form.addRow("Boundary case:", self.boundary)
-
-        self.provenance = QLineEdit()
-        self.provenance.setPlaceholderText("Your own reference / QID (never a copyrighted stem)")
-        form.addRow("Provenance:", self.provenance)
         layout.addLayout(form)
 
-        self.transfer = QCheckBox("This is a transfer / perturbed item (held-out)")
+        # Optional details - collapsed by default so the dialog stays short.
+        self.more_btn = QToolButton()
+        self.more_btn.setText("More options")
+        self.more_btn.setCheckable(True)
+        self.more_btn.setArrowType(Qt.ArrowType.RightArrow)
+        self.more_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self.more_btn.setStyleSheet("QToolButton { border: none; padding: 2px; }")
+        qconnect(self.more_btn.toggled, self._on_toggle_more)
+        layout.addWidget(self.more_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        self.more = QWidget()
+        more_form = QFormLayout(self.more)
+        more_form.setContentsMargins(0, 0, 0, 0)
+        self.principle = QLineEdit()
+        self.principle.setPlaceholderText("The key idea in your own words")
+        more_form.addRow("Key idea:", self.principle)
+        self.trap = QLineEdit()
+        self.trap.setPlaceholderText("The common mistake this catches")
+        more_form.addRow("Common trap:", self.trap)
+        self.boundary = QLineEdit()
+        self.boundary.setPlaceholderText("An edge case where the idea breaks")
+        more_form.addRow("Edge case:", self.boundary)
+        self.provenance = QLineEdit()
+        self.provenance.setPlaceholderText("Your own reference (don't paste copyrighted questions)")
+        more_form.addRow("Source:", self.provenance)
+        self.more.setVisible(False)
+        layout.addWidget(self.more)
+
+        self.transfer = QCheckBox("Practice-test item (held out from study)")
         layout.addWidget(self.transfer)
 
         buttons = QDialogButtonBox(
@@ -129,6 +136,14 @@ class DisconfirmerDialog(QDialog):
         qconnect(buttons.accepted, self._on_accept)
         qconnect(buttons.rejected, self.reject)
         layout.addWidget(buttons)
+
+    def _on_toggle_more(self, checked: bool) -> None:
+        self.more.setVisible(checked)
+        self.more_btn.setArrowType(
+            Qt.ArrowType.DownArrow if checked else Qt.ArrowType.RightArrow
+        )
+        if not checked:  # shrink back to fit when collapsing
+            self.adjustSize()
 
     def _content_categories(self):
         graph = load_outline_graph()
@@ -146,15 +161,18 @@ class DisconfirmerDialog(QDialog):
             return
         rung = state.rung_for_family(self.col, family)
         info = fading.RUNG_GUIDANCE[rung]
-        parts = [f"<b>Guidance level: {info['label']}</b>", str(info["summary"])]
+        self.guidance.setText(f"<b>{info['label']}</b> &mdash; {info['summary']}")
+        # Keep the panel to one line: the perturbation checklist and worked example
+        # live as hover tooltips on the Question box instead of always-on text.
+        tip_parts = []
         if info.get("show_exemplar"):
-            parts.append("<i>Exemplar:</i> " + fading.EXEMPLAR)
+            tip_parts.append("Example - " + fading.EXEMPLAR)
         if info.get("show_checklist"):
-            parts.append(
-                "<i>Perturb at least one surface dimension:</i> "
+            tip_parts.append(
+                "Change at least one thing from the original: "
                 + ", ".join(fading.PERTURBATION_CHECKLIST)
             )
-        self.guidance.setText("<br><br>".join(parts))
+        self.swapped.setToolTip("\n\n".join(tip_parts))
 
     # -- actions --------------------------------------------------------------
 
@@ -163,7 +181,8 @@ class DisconfirmerDialog(QDialog):
         hint, prov = ai.disconfirmer_hint(
             client, self.swapped.toPlainText().strip(), self.answer.text().strip()
         )
-        self.hint_label.setText(f"Hint ({prov.source}): {hint}")
+        label = "AI hint" if prov.source.startswith("AI") else "Hint"
+        self.hint_label.setText(f"{label}: {hint}")
         self._assisted = True
 
     def _on_accept(self) -> None:
@@ -183,8 +202,7 @@ class DisconfirmerDialog(QDialog):
         fields = {
             "SwappedCoverStory": question,
             "Answer": answer,
-            "OriginalCoverStory": self.original.toPlainText().strip(),
-            "Principle": self.principle.toPlainText().strip(),
+            "Principle": self.principle.text().strip(),
             "Trap": self.trap.text().strip(),
             "Disconfirmer": disc,
             "BoundaryCase": self.boundary.text().strip(),
@@ -203,14 +221,14 @@ class DisconfirmerDialog(QDialog):
             self.col.update_note(note)
             self._assisted = False
         self.mw.reset()
-        tooltip("Disconfirmer card added.", parent=self.mw)
+        tooltip("Card added.", parent=self.mw)
         self.hint_label.setText("")
         self._clear_fields()
 
     def _clear_fields(self) -> None:
-        for w in (self.swapped, self.original, self.principle, self.disconfirmer):
-            w.setPlainText("")
-        for w in (self.answer, self.trap, self.boundary, self.provenance):
+        self.swapped.setPlainText("")
+        self.disconfirmer.setPlainText("")
+        for w in (self.answer, self.principle, self.trap, self.boundary, self.provenance):
             w.setText("")
         self.transfer.setChecked(False)
         self.swapped.setFocus()
@@ -218,7 +236,7 @@ class DisconfirmerDialog(QDialog):
     # -- dialog-manager integration ------------------------------------------
 
     def reject(self) -> None:
-        saveGeom(self, "speedrunAuthoring")
+        saveGeom(self, "speedrunAuthoringV2")
         self.deck_chooser.cleanup()
         aqt.dialogs.markClosed(DIALOG_NAME)
         QDialog.reject(self)

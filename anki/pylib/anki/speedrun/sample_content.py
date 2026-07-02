@@ -312,5 +312,103 @@ PRETEST_SEED: List[Dict] = [
 ]
 
 
+#: Sample exam-style Qbank items (the memory->performance bridge). Original,
+#: `[Sample]`-style multiple-choice; ``family`` is the AAMC content-category code so
+#: performance rolls up per section and recall links to the sample memory cards of the
+#: same code. Tagged ``holdout::performance`` so they stay out of the studied memory set.
+#: ~6 per science section so a section can reach the display threshold once answered.
+PERFORMANCE_SEED: List[Dict] = [
+    # Bio/Biochem
+    {"family": "1A", "concept": "aa_charge", "stem": "[Sample] At blood pH (~7.4), which amino acid side chain is most likely positively charged?", "options": {"A": "Aspartate", "B": "Lysine", "C": "Valine", "D": "Serine"}, "correct": "B", "rationale": "Lysine's side-chain amino group is protonated and positive near physiological pH."},
+    {"family": "1D", "concept": "glyco_atp", "stem": "[Sample] With no oxygen, a cell still nets ATP from one glucose. Which pathway, and how many ATP?", "options": {"A": "Krebs cycle, 2", "B": "Glycolysis, 2", "C": "Oxidative phosphorylation, 34", "D": "Glycolysis, 36"}, "correct": "B", "rationale": "Anaerobic glycolysis nets 2 ATP without oxygen."},
+    {"family": "1B", "concept": "translation_site", "stem": "[Sample] Where does translation occur in eukaryotes?", "options": {"A": "Nucleus", "B": "Ribosome", "C": "Golgi apparatus", "D": "Mitochondrial matrix"}, "correct": "B", "rationale": "mRNA is translated by ribosomes in the cytoplasm/rough ER."},
+    {"family": "2A", "concept": "golgi", "stem": "[Sample] Which organelle modifies and packages proteins for secretion?", "options": {"A": "Lysosome", "B": "Golgi apparatus", "C": "Nucleus", "D": "Smooth ER"}, "correct": "B", "rationale": "The Golgi modifies, sorts, and packages proteins from the ER."},
+    {"family": "3A", "concept": "nmj_nt", "stem": "[Sample] Which neurotransmitter acts at the neuromuscular junction?", "options": {"A": "Dopamine", "B": "Acetylcholine", "C": "GABA", "D": "Serotonin"}, "correct": "B", "rationale": "Motor neurons release acetylcholine at the neuromuscular junction."},
+    {"family": "3B", "concept": "nephron", "stem": "[Sample] What is the functional unit of the kidney?", "options": {"A": "Alveolus", "B": "Nephron", "C": "Sarcomere", "D": "Neuron"}, "correct": "B", "rationale": "The nephron filters blood and forms urine."},
+    # Chem/Phys
+    {"family": "4A", "concept": "newton2", "stem": "[Sample] A net force acts on a fixed mass. Doubling the force does what to acceleration?", "options": {"A": "Halves it", "B": "Doubles it", "C": "No change", "D": "Quadruples it"}, "correct": "B", "rationale": "F = ma, so at constant mass acceleration is proportional to force."},
+    {"family": "4C", "concept": "series_r", "stem": "[Sample] Two equal resistors in series versus one alone: the total resistance is?", "options": {"A": "Halved", "B": "Doubled", "C": "Unchanged", "D": "Zero"}, "correct": "B", "rationale": "Series resistances add; two equal resistors double the total."},
+    {"family": "4E", "concept": "beta_decay", "stem": "[Sample] Beta-minus decay converts a neutron into a?", "options": {"A": "Proton", "B": "Electron", "C": "Alpha particle", "D": "Neutron"}, "correct": "A", "rationale": "A neutron becomes a proton, emitting an electron (beta particle)."},
+    {"family": "5A", "concept": "strong_acid_ph", "stem": "[Sample] Adding a strong acid to water at 25C moves the pH which way?", "options": {"A": "Above 7", "B": "Below 7", "C": "Stays at 7", "D": "Becomes undefined"}, "correct": "B", "rationale": "Extra H+ lowers the pH below the neutral value of 7."},
+    {"family": "5D", "concept": "ester", "stem": "[Sample] A carboxylic acid plus an alcohol yields which functional group?", "options": {"A": "Ether", "B": "Ester", "C": "Amide", "D": "Ketone"}, "correct": "B", "rationale": "Acid + alcohol condense (losing water) to form an ester."},
+    {"family": "5E", "concept": "catalyst", "stem": "[Sample] A catalyst changes which of the following?", "options": {"A": "The equilibrium constant", "B": "The activation energy", "C": "The reaction's dG", "D": "The products formed"}, "correct": "B", "rationale": "A catalyst lowers activation energy; it does not change Keq or dG."},
+    # Psych/Soc
+    {"family": "6A", "concept": "abs_threshold", "stem": "[Sample] The minimum stimulus intensity detected 50% of the time is the?", "options": {"A": "Difference threshold", "B": "Absolute threshold", "C": "Just-noticeable difference", "D": "Weber constant"}, "correct": "B", "rationale": "The absolute threshold is the intensity detected 50% of the time."},
+    {"family": "6B", "concept": "stm_capacity", "stem": "[Sample] About how many items can short-term memory hold (Miller)?", "options": {"A": "3 plus or minus 1", "B": "7 plus or minus 2", "C": "12 plus or minus 3", "D": "Unlimited"}, "correct": "B", "rationale": "Miller's estimate is about 7 plus or minus 2 items."},
+    {"family": "6C", "concept": "sympathetic", "stem": "[Sample] Fight-or-flight is driven by which nervous system?", "options": {"A": "Parasympathetic", "B": "Sympathetic", "C": "Somatic", "D": "Enteric"}, "correct": "B", "rationale": "The sympathetic nervous system drives the fight-or-flight response."},
+    {"family": "7A", "concept": "neg_reinf", "stem": "[Sample] Removing an aversive stimulus to increase a behavior is?", "options": {"A": "Positive punishment", "B": "Negative reinforcement", "C": "Positive reinforcement", "D": "Extinction"}, "correct": "B", "rationale": "Negative reinforcement removes an aversive stimulus to increase behavior."},
+    {"family": "7B", "concept": "conformity", "stem": "[Sample] Asch's line studies primarily demonstrated?", "options": {"A": "Obedience", "B": "Conformity", "C": "The bystander effect", "D": "Social facilitation"}, "correct": "B", "rationale": "Participants conformed to a unanimous incorrect majority."},
+    {"family": "8B", "concept": "fae", "stem": "[Sample] Overattributing others' behavior to disposition is the?", "options": {"A": "Self-serving bias", "B": "Fundamental attribution error", "C": "Halo effect", "D": "Just-world bias"}, "correct": "B", "rationale": "The fundamental attribution error overweights disposition over situation."},
+]
+
+
+#: Bundled source passages for AI item generation (spec 7f) so the user need not paste a
+#: passage - a random one is chosen and items are generated (and gated) from it. All
+#: original prose; no copyrighted text.
+SOURCE_PASSAGES: List[Dict] = [
+    {
+        "title": "[Sample source] Enzyme kinetics",
+        "text": (
+            "Enzymes speed reactions by lowering the activation energy, and are not "
+            "consumed. Km is the substrate concentration at half of Vmax; a lower Km "
+            "means higher apparent affinity. A competitive inhibitor resembles the "
+            "substrate and raises the apparent Km while leaving Vmax unchanged, because "
+            "excess substrate can outcompete it. A noncompetitive inhibitor binds "
+            "elsewhere and lowers Vmax."
+        ),
+    },
+    {
+        "title": "[Sample source] Cellular respiration",
+        "text": (
+            "Glycolysis occurs in the cytoplasm and nets two ATP per glucose without "
+            "oxygen. Pyruvate then enters the mitochondrion, where the citric acid cycle "
+            "and oxidative phosphorylation extract far more energy, using oxygen as the "
+            "final electron acceptor of the electron transport chain. Without oxygen, "
+            "cells rely on glycolysis and fermentation."
+        ),
+    },
+    {
+        "title": "[Sample source] Acids, bases, and buffers",
+        "text": (
+            "The pH is the negative logarithm of the hydrogen-ion concentration; at 25C a "
+            "neutral solution has pH 7. Strong acids dissociate completely and lower pH. A "
+            "buffer resists pH change and is most effective when the pH equals the pKa, "
+            "where the weak acid and its conjugate base are present in equal amounts "
+            "(Henderson-Hasselbalch)."
+        ),
+    },
+    {
+        "title": "[Sample source] Circuits and forces",
+        "text": (
+            "Newton's second law states that the net force on an object equals its mass "
+            "times its acceleration, so at constant mass acceleration is proportional to "
+            "force. In a circuit, Ohm's law relates voltage, current, and resistance as V "
+            "= I times R. Resistors in series add, while resistors in parallel reduce the "
+            "total resistance."
+        ),
+    },
+    {
+        "title": "[Sample source] Learning and conditioning",
+        "text": (
+            "In classical conditioning a neutral stimulus becomes associated with a "
+            "reflexive response. In operant conditioning, consequences shape behavior: "
+            "reinforcement increases a behavior while punishment decreases it. Negative "
+            "reinforcement increases behavior by removing an aversive stimulus, and should "
+            "not be confused with punishment."
+        ),
+    },
+    {
+        "title": "[Sample source] Sensation and memory",
+        "text": (
+            "The absolute threshold is the minimum stimulus intensity detected half of the "
+            "time, while the difference threshold is the smallest detectable change between "
+            "two stimuli. Short-term memory holds roughly seven items briefly; chunking "
+            "increases its effective capacity, and rehearsal can move information into "
+            "long-term memory."
+        ),
+    },
+]
+
+
 def total_sample_cards() -> int:
     return sum(len(v) for v in SAMPLE_CARDS.values())

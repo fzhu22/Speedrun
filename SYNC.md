@@ -138,6 +138,29 @@ choice: **Upload** (keep this device's data, overwrite the server) or **Download
 (take the server's data, overwrite this device). To avoid losing reviews, **sync
 right after each study session** so there is never a two-sided divergence.
 
+## The sync test (7b)
+
+Spec 7b: prove reviews flow both ways with none lost or double-counted, and that the
+conflict rule picks a clear winner.
+
+Procedure:
+
+1. On the desktop, sign in and **Upload** so both devices start from the same collection.
+2. Put the phone offline (airplane mode) and review **10 cards**.
+3. Offline on the desktop, review **10 different cards**.
+4. Reconnect and **Sync** both. All 20 reviews land in one collection - none lost, none
+   counted twice (compare the review count in Stats before and after).
+
+Conflict case: review the **same** card on both devices while offline, then Sync. Anki
+does not auto-merge a two-sided change - the next Sync forces a one-directional choice,
+**Upload** (keep this device, overwrite the server) or **Download** (take the server,
+overwrite this device). The winner is whichever direction you pick; there is no silent
+merge and no double count.
+
+Rule we follow: sync right after each study session on each device, so there is never a
+two-sided divergence. Server health: `GET https://speedrun-sync-frank-1vls.fly.dev/health`
+returns `200` (confirmed live).
+
 ## Keep it free
 
 Fly is pay-as-you-go (the old always-free allowance is gone for new accounts).

@@ -43,8 +43,6 @@ const DEFAULT_MIN_REVIEWS: u32 = 200;
 const PLAN_LEN: usize = 5;
 /// Config key holding the per-family fading state (`family_code -> {"rung": ..}`).
 const FADING_CONFIG_KEY: &str = "speedrun_fading";
-/// Performance always abstains for now: there are no exam-style items yet.
-const PERFORMANCE_ABSTAIN: &str = "insufficient data - no exam-style items yet";
 
 /// The family's current fading rung: the persisted rung from the config map when
 /// present, otherwise a conservative estimate from the average recall. Mirrors
@@ -75,7 +73,7 @@ fn estimate_rung(avg_recall: Option<f32>) -> &'static str {
 /// clamped to [0, 1]. This is the memory score's honest range: it is wide when
 /// only a few cards back the estimate and tightens as `n` grows, so the
 /// dashboard never implies more certainty than the data supports.
-fn wilson_interval(p: f32, n: u32) -> (f32, f32) {
+pub(crate) fn wilson_interval(p: f32, n: u32) -> (f32, f32) {
     const Z: f32 = 1.96; // ~95% two-sided
     let n = n as f32;
     let z2 = Z * Z;
@@ -196,6 +194,10 @@ impl Collection {
             })
             .collect();
 
+        // Performance (read-only): per-section accuracy on graded held-out items,
+        // gated by the incremental-validity flag the desktop prepare tier sets.
+        let perf = self.speedrun_section_performance()?;
+
         // Per-section rows: coverage from `cov`, memory as the mean of per-cc
         // recall over the section's categories that have data (abstain if none).
         // `cov.per_section` is in outline order over the non-empty sections, so it
@@ -231,6 +233,7 @@ impl Collection {
                     }
                     _ => (None, None),
                 };
+                let sp = perf.by_section.get(section.id);
                 SectionRow {
                     section: sc.title.to_string(),
                     abbrev: sc.abbrev.to_string(),
@@ -239,6 +242,10 @@ impl Collection {
                     memory_low,
                     memory_high,
                     reviewed_cards,
+                    performance: sp.and_then(|p| p.accuracy),
+                    performance_low: sp.and_then(|p| p.low),
+                    performance_high: sp.and_then(|p| p.high),
+                    performance_items: sp.map(|p| p.items).unwrap_or(0),
                 }
             })
             .collect();
@@ -276,7 +283,7 @@ impl Collection {
             readiness_allowed,
             give_up_line,
             total_reviews,
-            performance_status: PERFORMANCE_ABSTAIN.to_string(),
+            performance_status: perf.status,
             readiness_status,
             plan,
         })

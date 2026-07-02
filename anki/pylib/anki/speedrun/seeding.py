@@ -17,9 +17,12 @@ from anki.speedrun.disconfirmer import (
     TAG_PREFIX,
     build_note,
     ensure_notetype,
+    topic_tag,
+    upgrade_topic_tag,
 )
 from anki.speedrun.sample_content import (
     DISCONFIRMER_SEED,
+    PERFORMANCE_SEED,
     PRETEST_SEED,
     SAMPLE_CARDS,
 )
@@ -29,6 +32,9 @@ SAMPLE_TAG = "speedrun_sample"
 DISC_SEED_TAG = "speedrun_disc_seed"
 PRETEST_DECK = "Speedrun Pretest (sample)"
 PRETEST_SEED_TAG = "speedrun_pretest_seed"
+PERF_DECK = "Speedrun Qbank (sample)"
+PERF_NOTETYPE = "Speedrun Performance Item"
+PERF_SEED_TAG = "speedrun_perf_seed"
 
 
 def _covered_codes(col) -> set:
@@ -58,7 +64,7 @@ def seed_sample_deck(col) -> int:
     for code, qas in SAMPLE_CARDS.items():
         if code in covered:
             continue
-        tag = f"{TAG_PREFIX}::{code}"
+        tag = topic_tag(code)
         for front, back in qas:
             note = col.new_note(model)
             note.fields[0] = front
@@ -132,19 +138,87 @@ def seed_pretest_deck(col) -> int:
             if item.get("explanation"):
                 back = f"{back}<br><br>{item['explanation']}"
             note.fields[1] = back
-            note.tags = [f"{TAG_PREFIX}::{item['family']}", PRETEST_SEED_TAG]
+            note.tags = [topic_tag(item["family"]), PRETEST_SEED_TAG]
             col.add_note(note, deck_id)
             added += 1
     return added
 
 
-def seed_all(col) -> Tuple[int, int, int]:
+def seed_performance_deck(col) -> int:
+    """Seed the sample exam-style Qbank (SPOV 3 / memory->performance). Returns count.
+
+    Items use the shared ``Speedrun Performance Item`` note type (created in the Rust
+    engine so the interactive MC template matches), are tagged with their AAMC
+    content-category code so they roll up per section (and recall links to the sample
+    memory cards of the same code), and are ``holdout::performance``. Idempotent.
+    """
+    if col.find_notes(f"tag:{PERF_SEED_TAG}"):
+        return 0
+    # Ensure the shared note type exists (Rust engine; idempotent).
+    try:
+        col.speedrun_ensure_notetypes()
+    except Exception:
+        pass
+    nt = col.models.by_name(PERF_NOTETYPE)
+    if nt is None:
+        return 0
+    deck_id = col.decks.id(PERF_DECK)
+    index = {f: i for i, f in enumerate(col.models.field_names(nt))}
+    added = 0
+    for item in PERFORMANCE_SEED:
+        note = col.new_note(nt)
+        note.fields[index["ConceptId"]] = item.get("concept", "")
+        note.fields[index["Stem"]] = item["stem"]
+        note.fields[index["OptionA"]] = item["options"]["A"]
+        note.fields[index["OptionB"]] = item["options"]["B"]
+        note.fields[index["OptionC"]] = item["options"]["C"]
+        note.fields[index["OptionD"]] = item["options"]["D"]
+        note.fields[index["Correct"]] = item["correct"]
+        note.fields[index["Rationale"]] = item.get("rationale", "")
+        note.fields[index["Variant"]] = "1"
+        note.tags = [
+            topic_tag(item["family"]),
+            f"concept::{item.get('concept', '')}",
+            "holdout::performance",
+            "perf::paraphrase",
+            PERF_SEED_TAG,
+        ]
+        col.add_note(note, deck_id)
+        added += 1
+    return added
+
+
+TAG_TITLES_MIGRATED_KEY = "speedrun_tag_titles_migrated"
+
+
+def migrate_topic_tags(col) -> int:
+    """One-time upgrade of existing bare ``MCAT::<code>`` tags to the readable
+    ``MCAT::<code>::<Title>`` form, so a collection seeded before this change reads
+    meaningfully. Additive (the code stays its own segment, so coverage is unchanged)
+    and idempotent (guarded by a config flag). Returns the number of notes updated."""
+    if col.get_config(TAG_TITLES_MIGRATED_KEY, default=False):
+        return 0
+    updated = 0
+    for nid in col.find_notes(f"tag:{TAG_PREFIX}::*"):
+        note = col.get_note(nid)
+        new_tags = [upgrade_topic_tag(t) for t in note.tags]
+        if new_tags != note.tags:
+            note.tags = new_tags
+            col.update_note(note)
+            updated += 1
+    col.set_config(TAG_TITLES_MIGRATED_KEY, True)
+    return updated
+
+
+def seed_all(col) -> Tuple[int, int, int, int]:
     """Seed all sample decks.
 
-    Returns (sample_cards_added, disconfirmer_cards_added, pretest_cards_added).
+    Returns (sample, disconfirmer, pretest, qbank) card counts.
     """
+    migrate_topic_tags(col)  # make any pre-existing MCAT tags human-readable
     return (
         seed_sample_deck(col),
         seed_disconfirmer_deck(col),
         seed_pretest_deck(col),
+        seed_performance_deck(col),
     )

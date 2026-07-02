@@ -142,7 +142,9 @@ def test_disconfirmer_notetype_and_render():
             transfer_item=True,
         )
         note = col.get_note(nid)
-        assert "MCAT::1A" in note.tags
+        # Readable tag MCAT::1A::<Title>, with the code still its own segment.
+        assert any("1A" in t.split("::") for t in note.tags)
+        assert any(t.startswith("MCAT::1A::") for t in note.tags)
         assert "speedrun_disconfirmer" in note.tags
         assert "speedrun_transfer" in note.tags
 
@@ -220,16 +222,19 @@ def test_seeding_is_idempotent():
         col.close()
 
 
-def test_seed_all_returns_three_counts():
+def test_seed_all_returns_four_counts():
     from tests.shared import getEmptyCol
 
-    from anki.speedrun.seeding import seed_all
+    from anki.speedrun.sample_content import PERFORMANCE_SEED
+    from anki.speedrun.seeding import PERF_NOTETYPE, seed_all
 
     col = getEmptyCol()
     try:
         counts = seed_all(col)
-        assert len(counts) == 3 and all(c > 0 for c in counts)
-        assert seed_all(col) == (0, 0, 0)  # idempotent
+        assert len(counts) == 4 and all(c > 0 for c in counts)  # incl. the Qbank
+        assert counts[3] == len(PERFORMANCE_SEED)
+        assert col.find_notes(f'note:"{PERF_NOTETYPE}"')  # Qbank items exist
+        assert seed_all(col) == (0, 0, 0, 0)  # idempotent
     finally:
         col.close()
 
@@ -263,13 +268,13 @@ def test_pretest_notetype_and_render():
         card = col.get_note(nid).cards()[0]
         front, back = card.question(), card.answer()
         assert "which pathway" in front.lower()
-        # The reviewer JS renders [[type:Answer]] into the input box / diff; the backend
-        # render leaves the marker, which is enough to prove the type-in is wired.
-        assert "[[type:Answer]]" in front  # forced typed guess on the front
-        assert "[[type:Answer]]" in back  # typed-vs-correct comparison on reveal
+        # Custom lenient type-in (not Anki's strict native {{type:Answer}}).
+        assert 'id="sr-type"' in front  # the forced typed guess input
+        assert "Glycolysis" in back  # answer revealed (in the #sr-answer span)
+        assert "sr-verdict" in back  # the lenient correct/close/incorrect verdict
         assert "oxygen-independent" in back  # mandatory in-session feedback (Explanation)
         assert "[Sample]" in back  # source/provenance shown
-        assert "MCAT::1D" in col.get_note(nid).tags
+        assert any("1D" in t.split("::") for t in col.get_note(nid).tags)
     finally:
         col.close()
 
@@ -485,5 +490,208 @@ def test_cardcache_roundtrip_and_gating():
         assert t2 is CardType.DECLARATIVE
         assert should_prompt_disconfirmer(t1, 1) is True  # application miss -> prompt
         assert should_prompt_disconfirmer(t2, 1) is False  # fact -> no prompt
+    finally:
+        col.close()
+
+
+# -- performance lane (SPOV 3 / spec 9.2, 7d, 7e) ----------------------------
+
+
+def test_performance_model_and_gate():
+    import math
+    import random
+
+    from anki.speedrun import performance as perf
+
+    rng = random.Random(0)
+    responses = []
+    for _ in range(80):
+        recall = rng.uniform(0.4, 0.95)
+        diff = rng.uniform(0.2, 0.9)
+        # correctness driven mostly by an application signal (difficulty) beyond recall
+        p = 1.0 / (1.0 + math.exp(-(2.5 * (0.6 - diff) + 0.4 * (recall - 0.6))))
+        responses.append(
+            perf.Response(
+                correct=rng.random() < p,
+                recall=recall,
+                difficulty=diff,
+                latency_ms=12000,
+                coverage=0.6,
+            )
+        )
+    g = perf.gate(responses)
+    assert g["n"] == 80
+    assert 0.0 <= g["auc_full"] <= 1.0 and 0.0 <= g["auc_recall"] <= 1.0
+    assert isinstance(g["passes"], bool)
+    # too little data can never pass the give-up threshold
+    assert perf.gate(responses[:5])["passes"] is False
+
+    fit = perf.fit_and_serialize(responses)
+    assert fit["model"] is not None and 0.0 <= fit["brier"] <= 1.0
+    prob = perf.predict(fit["model"], perf.full_features(responses[0]))
+    assert 0.0 <= prob <= 1.0
+
+
+def test_performance_paraphrase_gap_and_leakage():
+    from anki.speedrun import performance as perf
+
+    para = perf.paraphrase_gap({"c1": 0.9, "c2": 0.7}, {"c1": 0.6, "c2": 0.7})
+    assert abs(para.per_concept["c1"]["gap"] - 0.3) < 1e-6
+    assert abs(para.mean_gap - 0.15) < 1e-6
+
+    # disjoint wording -> clean; near-duplicate -> flagged
+    assert perf.leakage_check(["alpha beta gamma delta"], ["one two three four five"]).clean
+    dirty = perf.leakage_check(
+        ["the reaction rate depends on activation energy and temperature strongly"],
+        ["the reaction rate depends on activation energy and temperature strongly indeed"],
+    )
+    assert not dirty.clean
+
+
+def test_ai_items_generation_gate_offline():
+    from anki.speedrun import ai_items
+
+    # AI-off (no client) never fabricates items
+    assert ai_items.generate_items(None, "some source", n=3) == []
+
+    good = ai_items.GeneratedItem(
+        stem="Which residue is positive at pH 7.4?",
+        options={"A": "Asp", "B": "Lys", "C": "Val", "D": "Ser"},
+        correct="B",
+        rationale="Lysine is protonated and positive at physiological pH.",
+        source="src",
+    )
+    assert ai_items.structural_problems(good) == []
+    bad = ai_items.GeneratedItem(
+        stem="", options={"A": "x", "B": "x", "C": "c", "D": "d"}, correct="E", rationale="", source=""
+    )
+    assert ai_items.structural_problems(bad)  # several problems
+
+    ev = ai_items.evaluate([good, bad])
+    assert ev["n"] == 2 and ev["valid"] == 1 and not ev["passes_cutoff"]
+
+    accepted, rejected = ai_items.accept([good], protected_texts=["utterly unrelated text here"])
+    assert len(accepted) == 1 and rejected == []
+
+    leaky = ai_items.GeneratedItem(
+        stem="Lysine is protonated and positive at physiological pH near blood",
+        options={"A": "a", "B": "b", "C": "c", "D": "d"},
+        correct="A",
+        rationale="r",
+        source="s",
+    )
+    _, rej = ai_items.accept(
+        [leaky], protected_texts=["Lysine is protonated and positive at physiological pH near blood plasma"]
+    )
+    assert any("leak" in p for r in rej for p in r["problems"])
+
+
+# -- authoring guidance + AI card advice --------------------------------------
+
+
+def test_guidance_for_topic():
+    from anki.speedrun import question_guidance as qg
+
+    with_topic = qg.guidance_for_topic("1A", "Proteins")
+    assert "1A" in with_topic[0]  # lead names the code (title is shown in the picker)
+    assert with_topic[1:] == qg.TOPIC_TIPS  # universal tips follow the lead line
+    assert len(qg.TOPIC_TIPS) == 3  # kept short so the Add panel doesn't scroll
+
+    generic = qg.guidance_for_topic()
+    assert generic[1:] == qg.TOPIC_TIPS
+    assert generic[0] != with_topic[0]  # a different, no-topic lead line
+
+
+def test_infer_topic_matches_code_or_none():
+    from anki.speedrun import question_guidance as qg
+
+    codes = [c for c, _t in qg.content_categories()]
+    assert codes, "expected AAMC content categories to load"
+    a_code = sorted(codes, key=lambda c: (len(c), c))[0]  # e.g. 1A
+
+    hit = qg.infer_topic([f"MCAT::{a_code}::proteins"], "")
+    assert hit is not None and hit[0] == a_code
+
+    assert qg.infer_topic([], "") is None
+    assert qg.infer_topic(["MCAT::nomatch"], "Random deck") is None
+
+
+def test_card_advice_falls_back_to_template_with_provenance():
+    from anki.speedrun import ai
+
+    text, prov = ai.card_advice(None, "What is osmosis?", "water moving", topic="1A")
+    assert text == ai._CARD_ADVICE_TEMPLATE
+    assert prov.source == "template"
+
+
+def test_topic_card_ideas_offline_names_topic():
+    from anki.speedrun import ai
+
+    text, prov = ai.topic_card_ideas(None, topic="1A - Proteins")
+    assert prov.source == "template"
+    assert "1A - Proteins" in text  # empty-card ideas name the chosen topic
+
+    text2, prov2 = ai.topic_card_ideas(None, "")
+    assert prov2.source == "template" and text2  # still useful with no topic
+
+
+# -- readable topic tags ------------------------------------------------------
+
+
+def test_topic_tag_readable_and_maps_to_code():
+    from anki.speedrun import disconfirmer as d
+
+    tag = d.topic_tag("1A")
+    assert tag.startswith("MCAT::1A::")  # readable title appended
+    assert "1A" in tag.split("::")  # code is still its own segment (coverage maps it)
+    assert " " not in tag  # no spaces (they would split the tag)
+
+    # an explicit title is sanitized into a single tag segment
+    assert d.topic_tag("9Z", "Cells: and stuff") == "MCAT::9Z::Cells_and_stuff"
+
+
+def test_upgrade_topic_tag():
+    from anki.speedrun import disconfirmer as d
+
+    up = d.upgrade_topic_tag("MCAT::1A")
+    assert up.startswith("MCAT::1A::") and up == d.topic_tag("1A")
+    # already-readable / non-topic / unknown-code tags are left alone
+    assert d.upgrade_topic_tag("MCAT::1A::Foo") == "MCAT::1A::Foo"
+    assert d.upgrade_topic_tag("holdout::performance") == "holdout::performance"
+    assert d.upgrade_topic_tag("MCAT::ZZ") == "MCAT::ZZ"
+
+
+def test_family_from_note_reads_code_from_readable_tag():
+    from tests.shared import getEmptyCol
+
+    from anki.speedrun import disconfirmer as d
+
+    col = getEmptyCol()
+    try:
+        note = col.new_note(col.models.by_name("Basic"))
+        note.tags = [d.topic_tag("1A")]  # MCAT::1A::<Title>
+        assert d.family_from_note(note) == "1A"  # still extracts the bare code
+    finally:
+        col.close()
+
+
+def test_migrate_topic_tags_upgrades_bare_tags():
+    from tests.shared import getEmptyCol
+
+    from anki.speedrun import seeding
+
+    col = getEmptyCol()
+    try:
+        note = col.new_note(col.models.by_name("Basic"))
+        note.fields[0] = "q"
+        note.fields[1] = "a"
+        note.tags = ["MCAT::1A", "keep::me"]
+        col.add_note(note, col.decks.id("Default"))
+
+        assert seeding.migrate_topic_tags(col) == 1
+        tags = col.get_note(note.id).tags
+        assert any(t.startswith("MCAT::1A::") for t in tags)
+        assert "keep::me" in tags  # unrelated tags untouched
+        assert seeding.migrate_topic_tags(col) == 0  # idempotent
     finally:
         col.close()

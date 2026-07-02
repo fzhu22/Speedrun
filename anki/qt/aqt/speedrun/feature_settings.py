@@ -34,32 +34,34 @@ def show_speedrun_features(mw: aqt.main.AnkiQt) -> None:
     layout = QVBoxLayout(dialog)
 
     intro = QLabel(
-        "Turn each Speedrun study feature on or off for A/B ablation testing "
-        "(spec section 8). Changes apply to new reviews and newly seeded cards; "
-        "existing cards are left as-is."
+        "Turn each study feature on or off. Changes apply to new reviews and new "
+        "cards; existing cards are left as-is."
     )
     intro.setWordWrap(True)
     layout.addWidget(intro)
 
-    pretest_cb = QCheckBox("Pretest-first cards (forced guess + feedback on new cards)")
+    pretest_cb = QCheckBox("Guess-first on new cards (a quick attempt before the answer)")
     pretest_cb.setChecked(pretest.pretest_enabled(col))
     layout.addWidget(pretest_cb)
 
-    disc_cb = QCheckBox("In-review disconfirmer prompt (fires on a miss)")
+    disc_cb = QCheckBox('After a miss, ask "what would change your mind?"')
     disc_cb.setChecked(review.disconfirmer_enabled(col))
     layout.addWidget(disc_cb)
 
-    fade_cb = QCheckBox("Per-family support-fading (the L3-L0 rung)")
+    fade_cb = QCheckBox("Fade guidance as you improve on a topic")
     fade_cb.setChecked(state.fading_enabled(col))
     layout.addWidget(fade_cb)
 
-    grade_cb = QCheckBox('Grading split: set "Again" (missed) apart from Hard/Good/Easy (passed)')
+    grade_cb = QCheckBox('Set "Again" apart from Hard / Good / Easy when grading')
     grade_cb.setChecked(state.grading_split_enabled(col))
     layout.addWidget(grade_cb)
 
+    guide_cb = QCheckBox("Question-writing guidance + AI hint when adding cards")
+    guide_cb.setChecked(state.authoring_guide_enabled(col))
+    layout.addWidget(guide_cb)
+
     note = QLabel(
-        "The AI hint lane is separate, gated by whether an API key is set "
-        "(Tools > Speedrun AI Settings) - it is off with no key."
+        "AI hints are controlled separately, under Tools > Speedrun AI Settings."
     )
     note.setWordWrap(True)
     note.setStyleSheet("QLabel { opacity: 0.7; font-size: 11px; }")
@@ -75,6 +77,7 @@ def show_speedrun_features(mw: aqt.main.AnkiQt) -> None:
         review.set_disconfirmer_enabled(col, disc_cb.isChecked())
         state.set_fading_enabled(col, fade_cb.isChecked())
         state.set_grading_split_enabled(col, grade_cb.isChecked())
+        state.set_authoring_guide_enabled(col, guide_cb.isChecked())
         tooltip("Speedrun feature settings saved.", parent=mw)
         dialog.accept()
 

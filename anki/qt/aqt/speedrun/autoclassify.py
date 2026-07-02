@@ -45,18 +45,25 @@ def on_overview_refresh(overview) -> None:
         return
 
     client = ai.resolve_client(col)
+    model = ai.get_config(col)["model"]
+    gate_cached = ai.classifier_gate(col).get(model)
     _running = True
 
     def task():
-        # Network/classification only - no collection writes off the main thread.
-        return [(nid, ai.classify_card_type(client, q, a)) for nid, q, a in items]
+        # Network only (gate eval + classification) - no collection writes off-thread.
+        return ai.classify_items(client, items, gate_cached)
 
     def on_done(fut) -> None:
         global _running
         _running = False
         try:
-            for nid, card_type in fut.result():
-                cardcache.set_cached_card_type(col, col.get_note(nid), card_type)
+            gate_result, labelled = fut.result()
+            if gate_result is not None:  # first eval for this model -> cache the verdict
+                ai.cache_classifier_gate(col, model, gate_result)
+            for nid, card_type, prov in labelled:
+                cardcache.set_cached_card_type(
+                    col, col.get_note(nid), card_type, source=prov.source
+                )
         except Exception as exc:  # never break the overview
             print("speedrun: auto-classify failed:", exc)
 

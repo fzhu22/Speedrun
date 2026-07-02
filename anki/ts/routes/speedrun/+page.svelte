@@ -16,6 +16,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         memoryLow?: number;
         memoryHigh?: number;
         reviewedCards?: number;
+        performance?: number;
+        performanceLow?: number;
+        performanceHigh?: number;
+        performanceItems?: number;
     }
 
     interface SpeedrunPlanItem {
@@ -54,43 +58,49 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     $: readinessAllowed = dashboard.readinessAllowed ?? false;
     $: giveUpPct = Math.round((dashboard.giveUpLine ?? 0.5) * 100);
     $: totalReviews = dashboard.totalReviews ?? 0;
-    $: performanceStatus = dashboard.performanceStatus
-        ?? "insufficient data - no exam-style items yet";
-    $: readinessStatus = dashboard.readinessStatus
-        ?? "abstaining - insufficient coverage";
     $: isEmpty = sections.length === 0 && plan.length === 0;
 
     function pct(value: number): string {
         return `${Math.round(value * 100)}%`;
     }
+
+    // User-facing copy built from the numbers (no engine jargon). MIN_REVIEWS mirrors
+    // the engine's readiness review floor.
+    const MIN_REVIEWS = 200;
+    const performanceLine =
+        "Measured once your deck has exam-style questions to answer - not yet.";
+    $: readinessLine = readinessAllowed
+        ? "You've studied enough of the exam to start tracking how ready you are."
+        : `Not enough to estimate yet: ${pct(overallCoverage)} of the exam covered `
+          + `(aim for ${giveUpPct}%) and ${totalReviews.toLocaleString()} of `
+          + `${MIN_REVIEWS} reviews done. This unlocks as you study.`;
 </script>
 
 <div class="speedrun">
     <header class="head">
-        <h1>Speedrun - Readiness dashboard</h1>
+        <h1>Speedrun</h1>
     </header>
 
     {#if isEmpty}
         <div class="note">
-            No <code>MCAT::</code>-tagged cards yet. Add and review MCAT cards, then
-            reopen this dashboard - coverage, memory and the study plan populate
-            automatically.
+            No MCAT cards yet. Add some and start reviewing - your coverage, memory,
+            and study plan fill in automatically.
         </div>
     {/if}
 
     <div class="panels">
         <section class="panel coverage">
-            <h2>Coverage (content categories)</h2>
+            <h2>Coverage</h2>
             <div class="coverage-head">
                 <span class="big">{pct(overallCoverage)}</span>
                 {#if readinessAllowed}
-                    <span class="pill ok">readiness allowed</span>
+                    <span class="pill ok">On track</span>
                 {:else}
-                    <span class="pill no">ABSTAIN &lt; {giveUpPct}%</span>
+                    <span class="pill no">Keep studying</span>
                 {/if}
             </div>
             <div class="leaves">
-                {coveredLeaves} / {totalLeaves} content categories covered
+                {coveredLeaves} of {totalLeaves} topics covered
             </div>
 
             {#if sections.length}
@@ -98,9 +108,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     <thead>
                         <tr>
                             <th class="section-cell">Section</th>
-                            <th class="num">Cov</th>
+                            <th class="num">Covered</th>
                             <th class="bar"></th>
-                            <th class="num mem">Mem (95%)</th>
+                            <th class="num mem">Memory</th>
+                            <th class="num mem">Performance</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -130,6 +141,23 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                                         {/if}
                                     {/if}
                                 </td>
+                                <td
+                                    class="num mem"
+                                    title={s.performanceItems
+                                        ? `${s.performanceItems} graded items`
+                                        : "gated: needs the validated model + enough items"}
+                                >
+                                    {#if s.performance == null}
+                                        <span class="dash">&mdash;</span>
+                                    {:else}
+                                        <span class="mem-point">{pct(s.performance)}</span>
+                                        {#if s.performanceLow != null && s.performanceHigh != null}
+                                            <span class="mem-range">
+                                                {pct(s.performanceLow)}&ndash;{pct(s.performanceHigh)}
+                                            </span>
+                                        {/if}
+                                    {/if}
+                                </td>
                             </tr>
                         {/each}
                     </tbody>
@@ -141,53 +169,51 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
         <div class="stack">
             <section class="panel">
-                <h2>The three scores</h2>
+                <h2>Your progress</h2>
                 <div class="scores">
                     <div class="score">
                         <span class="score-label">Memory</span>
                         <span class="score-body">
-                            per-topic FSRS recall, with a 95% range in the
-                            <b>Mem</b> column.
+                            How well you recall what you've studied - see the Memory
+                            column, with a range that tightens as you review more.
                         </span>
                     </div>
                     <div class="score">
                         <span class="score-label">Performance</span>
-                        <span class="score-body">{performanceStatus}</span>
+                        <span class="score-body">{performanceLine}</span>
                     </div>
                     <div class="score">
                         <span class="score-label">Readiness</span>
-                        <span class="score-body">{readinessStatus}</span>
+                        <span class="score-body">{readinessLine}</span>
                     </div>
                 </div>
                 <p class="fine">
-                    {totalReviews.toLocaleString()} reviews recorded.
+                    {totalReviews.toLocaleString()} reviews so far.
                 </p>
             </section>
 
             <section class="panel">
-                <h2>Single best next thing to study</h2>
+                <h2>What to study next</h2>
                 {#if plan.length}
                     <ol class="plan">
                         {#each plan as item}
                             <li class:prereq={item.prerequisite}>
                                 <div class="plan-head">
-                                    <span class="code">{item.code}</span>
                                     <span class="title">{item.title}</span>
-                                    <span class="badges">
-                                        <span class="rung">{item.rung}</span>
-                                        {#if item.prerequisite}
-                                            <span class="prereq-badge">prereq</span>
-                                        {/if}
-                                    </span>
+                                    {#if item.prerequisite}
+                                        <span class="prereq-badge">Foundational</span>
+                                    {/if}
                                 </div>
                                 <div class="reason">
-                                    {item.reason} &middot; score {item.score.toFixed(2)}
+                                    {item.prerequisite
+                                        ? "Learn this before it blocks later topics."
+                                        : "High-yield topic you're still weak on."}
                                 </div>
                             </li>
                         {/each}
                     </ol>
                 {:else}
-                    <p class="muted">No recommendation yet.</p>
+                    <p class="muted">Nothing to recommend yet - keep studying.</p>
                 {/if}
             </section>
         </div>

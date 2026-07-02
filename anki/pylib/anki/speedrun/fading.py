@@ -34,46 +34,46 @@ class Rung(str, Enum):
 #: What the authoring dialog should surface at each rung.
 RUNG_GUIDANCE: Dict[Rung, Dict[str, object]] = {
     Rung.L3: {
-        "label": "L3 - Guided",
-        "summary": "New or weak family: full scaffold, a worked exemplar, and the perturbation checklist.",
+        "label": "New topic",
+        "summary": "Here's a worked example and a short checklist to get you started.",
         "show_exemplar": True,
         "show_checklist": True,
     },
     Rung.L2: {
-        "label": "L2 - Assisted",
-        "summary": "Improving: prompts and an exemplar available on demand.",
+        "label": "Getting there",
+        "summary": "A worked example is here if you want it.",
         "show_exemplar": False,
         "show_checklist": True,
     },
     Rung.L1: {
-        "label": "L1 - Independent",
-        "summary": "Competent: required fields and disconfirmer validation only.",
+        "label": "Independent",
+        "summary": "You've got this - just fill in the fields.",
         "show_exemplar": False,
         "show_checklist": False,
     },
     Rung.L0: {
-        "label": "L0 - Mastery",
-        "summary": "Mastered: minimal checklist; the disconfirmer is still required.",
+        "label": "Mastered",
+        "summary": "Quick check only.",
         "show_exemplar": False,
         "show_checklist": False,
     },
 }
 
-#: A worked exemplar shown at L3 (a good disconfirmer names what would flip the answer).
+#: A worked example shown for a new topic (a good answer names what would flip it).
 EXEMPLAR = (
     "Q: A weak acid HA has pKa 4.8. At pH 4.8, which dominates?  Answer: [HA] = [A-].  "
-    "Disconfirmer: if the pH rose above the pKa, A- would dominate (Henderson-Hasselbalch) "
+    "What flips it: if the pH rose above the pKa, A- would dominate "
     "- so the answer flips when pH crosses the pKa."
 )
 
-#: Surface dimensions to vary while holding the deep principle fixed.
+#: Things to change from the original while keeping the same underlying idea.
 PERTURBATION_CHECKLIST = [
-    "cover-story / context",
-    "named entities",
-    "units",
-    "numeric values",
-    "question framing / polarity",
-    "representation (prose <-> diagram)",
+    "the scenario or wording",
+    "the names involved",
+    "the units",
+    "the numbers",
+    "how the question is phrased",
+    "prose vs. diagram",
 ]
 
 

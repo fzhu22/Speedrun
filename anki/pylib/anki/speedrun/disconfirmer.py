@@ -11,11 +11,14 @@ is required and validated (a nudge the student can override), per SPOV 1.
 
 from __future__ import annotations
 
+import re
 from typing import Dict, List, Optional
 
 import anki.collection
 from anki.models import NotetypeDict
 from anki.notes import NoteId
+from anki.speedrun.aamc_outline import load_outline_graph
+from anki.speedrun.models import NodeKind
 from anki.speedrun.textutil import containment, token_set
 
 NOTETYPE_NAME = "Speedrun Disconfirmer"
@@ -137,7 +140,7 @@ def build_note(
         note.fields[index["ConceptFamily"]] = family
     tags = [NOTE_TAG]
     if family:
-        tags.append(f"{TAG_PREFIX}::{family}")
+        tags.append(topic_tag(family))
     if transfer_item:
         tags.append(TRANSFER_TAG)
     note.tags = tags
@@ -146,7 +149,9 @@ def build_note(
 
 
 def family_from_note(note) -> Optional[str]:
-    """The concept family for a note: its ConceptFamily field, else an MCAT:: tag."""
+    """The concept family (content-category code) for a note: its ConceptFamily field,
+    else the code parsed from an ``MCAT::`` tag. Handles both the bare ``MCAT::1A`` form
+    and the readable ``MCAT::1A::<Title>`` form (returns ``1A`` for both)."""
     try:
         value = note["ConceptFamily"].strip()
         if value:
@@ -154,7 +159,75 @@ def family_from_note(note) -> Optional[str]:
     except Exception:
         pass
     prefix = f"{TAG_PREFIX}::"
+    codes = _known_codes()
     for tag in note.tags:
-        if tag.startswith(prefix):
-            return tag[len(prefix) :]
+        if not tag.startswith(prefix):
+            continue
+        for part in reversed(tag.split("::")):
+            if part in codes:
+                return part
+        return tag[len(prefix) :].split("::", 1)[0]  # unknown code: first segment
     return None
+
+
+# -- topic tags (human-readable) ---------------------------------------------
+#
+# The coverage/mastery engine maps a card to its content category by finding the
+# most-specific ``::`` segment that is exactly a known code (e.g. ``1A``). We keep that
+# code as its own segment but append the AAMC title so tags read meaningfully - e.g.
+# ``MCAT::1A::Structure_and_function_of_proteins...`` instead of the opaque ``MCAT::1A``.
+
+
+def _content_categories() -> List[tuple]:
+    graph = load_outline_graph()
+    return [
+        (n.id.split(":")[-1], n.title) for n in graph.nodes(NodeKind.CONTENT_CATEGORY)
+    ]
+
+
+def _known_codes() -> set:
+    return {code for code, _title in _content_categories()}
+
+
+def title_for_code(code: str) -> Optional[str]:
+    for c, title in _content_categories():
+        if c == code:
+            return title
+    return None
+
+
+#: Cap the title segment so tags stay readable in the sidebar/autocomplete; the code
+#: segment is the unique key, so a shortened human label is fine.
+_MAX_TITLE_TAG_LEN = 48
+
+
+def _tag_safe_title(title: str) -> str:
+    """A title turned into one tag segment: punctuation and tag-search metacharacters
+    dropped, spaces -> underscores (spaces would split the tag), capped at a word
+    boundary."""
+    s = re.sub(r"[\"'*:,()&/]", "", title or "")
+    s = re.sub(r"\s+", "_", s.strip())
+    s = re.sub(r"_+", "_", s).strip("_")
+    if len(s) > _MAX_TITLE_TAG_LEN:
+        s = s[:_MAX_TITLE_TAG_LEN].rsplit("_", 1)[0]  # cut on a word boundary
+    return s
+
+
+def topic_tag(code: str, title: Optional[str] = None) -> str:
+    """The readable MCAT tag for a content-category code: ``MCAT::<code>::<Title>`` (or
+    just ``MCAT::<code>`` when no title is known). The code stays its own segment so
+    coverage still maps it."""
+    if title is None:
+        title = title_for_code(code) or ""
+    tag = f"{TAG_PREFIX}::{code}"
+    safe = _tag_safe_title(title)
+    return f"{tag}::{safe}" if safe else tag
+
+
+def upgrade_topic_tag(tag: str) -> str:
+    """Upgrade a bare ``MCAT::<code>`` tag to the readable form; leave anything else
+    (already-titled tags, non-topic tags, unknown codes) untouched."""
+    parts = tag.split("::")
+    if len(parts) == 2 and parts[0] == TAG_PREFIX and parts[1] in _known_codes():
+        return topic_tag(parts[1])
+    return tag

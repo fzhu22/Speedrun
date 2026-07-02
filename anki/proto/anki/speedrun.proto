@@ -62,6 +62,15 @@ message SpeedrunDashboardResponse {
     // Cards with a defined FSRS recall backing this section's memory estimate
     // (the n behind the interval); 0 when memory abstains.
     uint32 reviewed_cards = 7;
+    // Performance: accuracy on graded held-out exam-style items for this section,
+    // with its 95% Wilson interval. All unset unless the performance model has
+    // passed its incremental-validity gate AND the section has enough graded items
+    // (a separately-gated score; never blended with memory).
+    optional float performance = 8;
+    optional float performance_low = 9;
+    optional float performance_high = 10;
+    // Graded held-out items backing the performance estimate (the n).
+    uint32 performance_items = 11;
   }
   // A single recommended next thing to study.
   message PlanItem {

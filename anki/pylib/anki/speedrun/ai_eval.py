@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Callable, Dict, List, Optional, Tuple
 
 from anki.speedrun.cardtype import CardType
-from anki.speedrun.textutil import Document
+from anki.speedrun.textutil import Document, bag_of_words, cosine
 from anki.speedrun.validation import LeakageReport, leakage_check
 
 #: Pre-registered before looking at results.
@@ -61,16 +61,39 @@ def evaluate(classify_fn: ClassifyFn, gold: Optional[List[GoldItem]] = None) -> 
     }
 
 
+def make_vector_baseline(prototypes: List[GoldItem]) -> ClassifyFn:
+    """A keyword/vector baseline: label a card by its nearest labeled prototype under
+    bag-of-words cosine similarity - the no-embedding-model stand-in for 'vector search'.
+    The AI classifier must beat this (and the heuristic) to clear the gate."""
+    protos = [(bag_of_words(f"{q} {a}"), t) for q, a, t in prototypes]
+
+    def classify(question: str, answer: str = "") -> CardType:
+        vec = bag_of_words(f"{question} {answer}")
+        best_type, best_sim = CardType.DECLARATIVE, -1.0
+        for pvec, ptype in protos:
+            sim = cosine(vec, pvec)
+            if sim > best_sim:
+                best_sim, best_type = sim, ptype
+        return best_type
+
+    return classify
+
+
 def compare(
     ai_fn: ClassifyFn,
     heuristic_fn: ClassifyFn,
     gold: Optional[List[GoldItem]] = None,
+    vector_fn: Optional[ClassifyFn] = None,
 ) -> Dict[str, float]:
-    """Accuracy of the AI classifier vs the heuristic baseline (beat-a-baseline)."""
-    return {
+    """Accuracy of the AI classifier vs simpler baselines (beat-a-baseline). Always
+    includes the keyword heuristic; includes the vector baseline when provided."""
+    result = {
         "ai": evaluate(ai_fn, gold)["accuracy"],
         "heuristic": evaluate(heuristic_fn, gold)["accuracy"],
     }
+    if vector_fn is not None:
+        result["vector"] = evaluate(vector_fn, gold)["accuracy"]
+    return result
 
 
 def passes_cutoff(accuracy: float, cutoff: float = CUTOFF) -> bool:

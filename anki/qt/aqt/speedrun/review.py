@@ -108,7 +108,7 @@ class MissDisconfirmerPrompt(QDialog):
         self.mw = mw
         self.col = mw.col
         self.card = card
-        self.setWindowTitle("Write a disconfirmer")
+        self.setWindowTitle("What one fact would flip this answer?")
         self.setModal(True)
         disable_help_button(self)
         self.setMinimumWidth(520)
@@ -121,13 +121,13 @@ class MissDisconfirmerPrompt(QDialog):
         layout = QVBoxLayout(self)
         if struggling:
             intro_text = (
-                "You keep missing this one - re-reading it isn't sticking. Build the "
-                "discriminating idea: what one fact, if true, would flip this answer?"
+                "You keep missing this one - re-reading isn't sticking. Study the card "
+                "below, then name the one fact that would flip the answer."
             )
         else:
             intro_text = (
-                "You found this hard - lock in the deep idea. What one fact, if true, "
-                "would flip this answer?"
+                "You found this hard - study the card below, then name the one fact that "
+                "would flip the answer."
             )
         intro = QLabel(intro_text)
         intro.setWordWrap(True)
@@ -143,7 +143,7 @@ class MissDisconfirmerPrompt(QDialog):
         )
         layout.addWidget(card_label)
 
-        layout.addWidget(QLabel("Disconfirmer (required):"))
+        layout.addWidget(QLabel("The one fact that would flip it:"))
         self.disc = QPlainTextEdit()
         self.disc.setFixedHeight(72)
         self.disc.setPlaceholderText("e.g. 'If X were true instead, the answer would become Y'")
@@ -158,12 +158,12 @@ class MissDisconfirmerPrompt(QDialog):
             self.hint_label.setStyleSheet("QLabel { font-style: italic; opacity: .85; }")
             layout.addWidget(self.hint_label)
 
-        layout.addWidget(QLabel("Principle (optional): the deep idea in your words"))
+        layout.addWidget(QLabel("Key idea (optional): in your own words"))
         self.principle = QLineEdit()
         layout.addWidget(self.principle)
 
         buttons = QDialogButtonBox()
-        save = buttons.addButton("Save disconfirmer card", QDialogButtonBox.ButtonRole.AcceptRole)
+        save = buttons.addButton("Save", QDialogButtonBox.ButtonRole.AcceptRole)
         skip = buttons.addButton("Skip", QDialogButtonBox.ButtonRole.RejectRole)
         qconnect(save.clicked, self._on_save)
         qconnect(skip.clicked, self.reject)
@@ -172,13 +172,14 @@ class MissDisconfirmerPrompt(QDialog):
     def _on_hint(self) -> None:
         client = ai.resolve_client(self.col)
         hint, prov = ai.disconfirmer_hint(client, self._question, self._answer)
-        self.hint_label.setText(f"Hint ({prov.source}): {hint}")
+        label = "AI hint" if prov.source.startswith("AI") else "Hint"
+        self.hint_label.setText(f"{label}: {hint}")
         self._assisted = True
 
     def _on_save(self) -> None:
         disconfirmer = self.disc.toPlainText().strip()
         if not disconfirmer:
-            tooltip("Write a disconfirmer, or click Skip.", parent=self)
+            tooltip("Write your answer, or click Skip.", parent=self)
             return
         problem = self.col.speedrun_validate_disconfirmer(
             text=disconfirmer, answer=self._answer
@@ -193,7 +194,7 @@ class MissDisconfirmerPrompt(QDialog):
                 assisted=self._assisted,
             )
         except Exception as exc:
-            showWarning(f"Could not create the disconfirmer card: {exc}", parent=self)
+            showWarning(f"Sorry, couldn't save that card: {exc}", parent=self)
             return
-        tooltip("Disconfirmer card created.", parent=self.mw)
+        tooltip("Saved.", parent=self.mw)
         self.accept()

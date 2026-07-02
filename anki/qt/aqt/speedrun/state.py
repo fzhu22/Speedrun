@@ -64,6 +64,21 @@ def set_grading_split_enabled(col, enabled: bool) -> None:
     col.set_config(GRADING_SPLIT_KEY, bool(enabled))
 
 
+#: Collection-config flag (default on). When on, the native Add dialog shows the
+#: question-writing guidance panel + AI hint button; off = plain Add dialog (ablation).
+AUTHORING_GUIDE_KEY = "speedrun_authoring_guide_enabled"
+
+
+def authoring_guide_enabled(col) -> bool:
+    """Whether the card-authoring guidance panel + AI hint are shown (default True)."""
+    val = col.get_config(AUTHORING_GUIDE_KEY, default=None)
+    return True if val is None else bool(val)
+
+
+def set_authoring_guide_enabled(col, enabled: bool) -> None:
+    col.set_config(AUTHORING_GUIDE_KEY, bool(enabled))
+
+
 def load_crutch(col) -> Dict:
     return col.get_config(CRUTCH_KEY, default=None) or anticrutch.empty_state()
 

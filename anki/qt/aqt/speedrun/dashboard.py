@@ -70,10 +70,10 @@ class SpeedrunDashboard(QDialog):
         self.web.load_sveltekit_page("speedrun")
 
     def on_seed(self) -> None:
-        sample, disc, pre = seeding.seed_all(self.mw.col)
+        sample, disc, pre, perf = seeding.seed_all(self.mw.col)
         tooltip(
-            f"Loaded {sample} sample + {disc} disconfirmer + {pre} pretest cards."
-            if (sample or disc or pre)
+            f"Loaded {sample} sample + {disc} disconfirmer + {pre} pretest + {perf} Qbank cards."
+            if (sample or disc or pre or perf)
             else "Sample decks already present.",
             parent=self,
         )

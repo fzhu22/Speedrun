@@ -15,6 +15,7 @@ mod dashboard;
 mod disconfirmer;
 mod fading;
 mod outline;
+mod performance;
 mod planning;
 mod service;
 mod textutil;

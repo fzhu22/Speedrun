@@ -13,6 +13,9 @@ from anki.speedrun.cardtype import CardType
 from anki.utils import strip_html
 
 CTYPE_TAG_PREFIX = "speedrun_ctype"
+#: Named source of the cached label ("AI_<model>" or "heuristic"), so every AI output
+#: traces back to a source right on the card.
+CTYPE_SRC_TAG_PREFIX = "speedrun_ctype_src"
 
 
 def cached_card_type(note) -> Optional[CardType]:
@@ -26,10 +29,20 @@ def cached_card_type(note) -> Optional[CardType]:
     return None
 
 
-def set_cached_card_type(col, note, card_type: CardType) -> None:
-    prefix = f"{CTYPE_TAG_PREFIX}::"
-    note.tags = [t for t in note.tags if not t.startswith(prefix)]
-    note.tags.append(f"{prefix}{card_type.value}")
+def _tag_safe(text: str) -> str:
+    """Make a source string usable as a single tag (no spaces; keep it readable)."""
+    return "".join(c if (c.isalnum() or c in "-.") else "_" for c in text)
+
+
+def set_cached_card_type(col, note, card_type: CardType, source: Optional[str] = None) -> None:
+    tprefix = f"{CTYPE_TAG_PREFIX}::"
+    sprefix = f"{CTYPE_SRC_TAG_PREFIX}::"
+    note.tags = [
+        t for t in note.tags if not t.startswith(tprefix) and not t.startswith(sprefix)
+    ]
+    note.tags.append(f"{tprefix}{card_type.value}")
+    if source:
+        note.tags.append(f"{sprefix}{_tag_safe(source)}")
     col.update_note(note)
 
 

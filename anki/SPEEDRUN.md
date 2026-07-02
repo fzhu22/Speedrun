@@ -45,9 +45,12 @@ with the upstream license.
   via the native type-in field), the `Speedrun Disconfirmer` note type
   (`disconfirmer.py`), the support-fading ladder (`fading.py`, per-family, conservative,
   reinstates support on any miss), the original sample content + deck seeding
-  (`sample_content.py`, `seeding.py`), and the (parked) AI lane (`ai.py`, `cardtype.py`,
-  `ai_eval.py`, `anticrutch.py`) - all shipped as part of the `anki` library. No
-  copyrighted decks are bundled; sample cards are original and labeled `[Sample]`.
+  (`sample_content.py`, `seeding.py`), the **performance lane** (`performance.py`: the
+  memory->performance model, the incremental-validity gate, the paraphrase test and the
+  leakage check; `ai_items.py`: gated AI item generation), and the (parked) AI lane
+  (`ai.py`, `cardtype.py`, `ai_eval.py`, `anticrutch.py`) - all shipped as part of the
+  `anki` library. No copyrighted decks are bundled; sample cards are original and labeled
+  `[Sample]`.
 - `qt/aqt/speedrun/` - the desktop integration: the readiness dashboard, the guided
   Miss->Card authoring dialog, the fading driver that updates the per-family rung from
   real study-card reviews and writes it back as a syncable `speedrun_rung::` tag
@@ -56,7 +59,11 @@ with the upstream license.
   itself (no desktop modal). All learning features run **in the study loop, on by
   default**: the in-review disconfirmer prompt (`review.py`) fires on a miss, and the AI
   card-type classification runs in the background on deck open (`autoclassify.py`) to gate
-  it - falling back to the deterministic heuristic when AI is off / keyless.
+  it - falling back to the deterministic heuristic when AI is off / keyless. The
+  **Performance** score is separately gated: Tools -> "Fit Performance Model"
+  (`perf_fit.py`) fits the model from the review log and only enables the dashboard's
+  Performance column once it beats recall out-of-sample; "Generate Items from Source"
+  runs AI item generation behind the eval gate.
 - `mcat-anki-learning-science-features/` - the project's BrainLift research and the
   sequenced execution plan (the learning-science positions and anti-patterns the
   build follows).

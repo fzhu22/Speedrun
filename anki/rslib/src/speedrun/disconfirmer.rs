@@ -109,6 +109,95 @@ const PRETEST_CSS: &str = r##".card { font-family: ui-sans-serif, system-ui, "Se
 .lbl { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; opacity: .6; }
 "##;
 
+// -- Speedrun Performance Item (the Qbank / memory->performance bridge) --------
+//
+// A held-out, exam-style multiple-choice item. The whole answering experience is
+// in the card template (SPOV 1: cross-platform review tier). The student taps an
+// option; the front records the pick + latency in `window.srPerf`; the back reveals
+// the correct answer + rationale and a verdict that tells the student which grade to
+// press. The durable, natively-synced outcome is the review grade (revlog): a passing
+// grade (Good/Easy) = correct. Field names match the testdeck fixture so an imported
+// `.apkg` maps onto this one note type.
+
+pub(crate) const PERF_NOTETYPE_NAME: &str = "Speedrun Performance Item";
+
+const PERF_FIELDS: &[&str] = &[
+    "ConceptId",
+    "Stem",
+    "OptionA",
+    "OptionB",
+    "OptionC",
+    "OptionD",
+    "Correct",
+    "Rationale",
+    "Variant",
+];
+
+const PERF_FRONT: &str = r##"<div class="sr-card sr-perf">
+  <div class="sr-stem">{{Stem}}</div>
+  <div class="sr-opts">
+    <button type="button" class="sr-opt" data-opt="A">A. {{OptionA}}</button>
+    <button type="button" class="sr-opt" data-opt="B">B. {{OptionB}}</button>
+    <button type="button" class="sr-opt" data-opt="C">C. {{OptionC}}</button>
+    <button type="button" class="sr-opt" data-opt="D">D. {{OptionD}}</button>
+  </div>
+  <div class="sr-prompt">Pick an option, then reveal.</div>
+</div>
+<script>
+(function(){
+  var start = Date.now();
+  window.srPerf = { pick: null, ms: 0 };
+  var opts = document.querySelectorAll('.sr-opt');
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].addEventListener('click', function(ev){
+      window.srPerf.pick = ev.currentTarget.getAttribute('data-opt');
+      window.srPerf.ms = Date.now() - start;
+      for (var j = 0; j < opts.length; j++) { opts[j].classList.remove('sel'); }
+      ev.currentTarget.classList.add('sel');
+    });
+  }
+})();
+</script>
+"##;
+
+const PERF_BACK: &str = r##"{{FrontSide}}
+<hr id="answer">
+<div class="sr-card sr-perf">
+  <div class="sr-a"><span class="lbl">Correct answer</span>{{Correct}}</div>
+  {{#Rationale}}<div class="sr-why"><span class="lbl">Why</span>{{Rationale}}</div>{{/Rationale}}
+  <div id="sr-verdict" class="sr-verdict"></div>
+</div>
+<script>
+(function(){
+  var correct = ("{{Correct}}" || "").trim().charAt(0).toUpperCase();
+  var pick = (window.srPerf && window.srPerf.pick) || null;
+  var el = document.getElementById("sr-verdict");
+  if (!el) return;
+  if (!pick) { el.textContent = "No option picked - grade honestly."; return; }
+  var ok = pick === correct;
+  el.textContent = ok
+    ? ("You picked " + pick + " - correct. Press Good.")
+    : ("You picked " + pick + " - incorrect (answer: " + correct + "). Press Again.");
+  el.className = "sr-verdict " + (ok ? "ok" : "no");
+})();
+</script>
+"##;
+
+const PERF_CSS: &str = r##".card { font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial; color: inherit; }
+.sr-card { max-width: 640px; margin: 0 auto; text-align: left; }
+.sr-stem { font-size: 18px; font-weight: 600; margin-bottom: 14px; }
+.sr-opts { display: grid; gap: 8px; margin-bottom: 12px; }
+.sr-opt { text-align: left; padding: 10px 12px; border: 1px solid rgba(127,127,127,.4); border-radius: 8px; background: rgba(127,127,127,.06); color: inherit; font: inherit; cursor: pointer; }
+.sr-opt.sel { border-color: #54a0ff; background: rgba(84,160,255,.15); }
+.sr-prompt { font-style: italic; opacity: .75; }
+.sr-a { font-size: 18px; margin: 8px 0; }
+.sr-why { background: rgba(84,160,255,.12); border-left: 3px solid #54a0ff; padding: 8px 10px; border-radius: 6px; margin: 10px 0; }
+.sr-verdict { margin-top: 10px; font-weight: 600; }
+.sr-verdict.ok { color: #2ea37a; }
+.sr-verdict.no { color: #d9534f; }
+.lbl { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; opacity: .6; }
+"##;
+
 /// Build (but do not add) a Speedrun note type from its field list, template and
 /// css, with the given sort field.
 fn build_notetype(
@@ -151,6 +240,17 @@ fn pretest_notetype() -> Notetype {
         PRETEST_BACK,
         PRETEST_CSS,
         "Question",
+    )
+}
+
+fn perf_notetype() -> Notetype {
+    build_notetype(
+        PERF_NOTETYPE_NAME,
+        PERF_FIELDS,
+        PERF_FRONT,
+        PERF_BACK,
+        PERF_CSS,
+        "Stem",
     )
 }
 
@@ -218,12 +318,13 @@ impl Collection {
         Ok(nt.id)
     }
 
-    /// Create the Speedrun Disconfirmer + Pretest note types if missing
-    /// (idempotent). A single undoable step.
+    /// Create the Speedrun Disconfirmer + Pretest + Performance Item note types if
+    /// missing (idempotent). A single undoable step.
     pub fn speedrun_ensure_notetypes(&mut self) -> Result<()> {
         self.transact(Op::AddNotetype, |col| {
             col.ensure_speedrun_notetype_inner(disconfirmer_notetype())?;
             col.ensure_speedrun_notetype_inner(pretest_notetype())?;
+            col.ensure_speedrun_notetype_inner(perf_notetype())?;
             Ok(())
         })?;
         Ok(())
