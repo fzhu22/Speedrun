@@ -31,6 +31,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         prerequisite: boolean;
     }
 
+    interface SpeedrunEvidence {
+        memoryLogLoss?: number;
+        memoryRmse?: number;
+        memoryReviews?: number;
+        perfAucFull?: number;
+        perfAucRecall?: number;
+        perfAucDelta?: number;
+        perfResponses?: number;
+        perfPassed?: boolean;
+    }
+
     interface SpeedrunDashboardData {
         overallCoverage: number;
         coveredLeaves: number;
@@ -42,6 +53,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         performanceStatus: string;
         readinessStatus: string;
         plan: SpeedrunPlanItem[];
+        evidence?: SpeedrunEvidence;
     }
 
     export let data: PageData;
@@ -64,16 +76,146 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         return `${Math.round(value * 100)}%`;
     }
 
+    function fmtPct(value?: number): string {
+        return value == null ? "\u2013" : `${Math.round(value * 100)}%`;
+    }
+
+    function fmt(value?: number, digits = 3): string {
+        return value == null ? "\u2013" : value.toFixed(digits);
+    }
+
+    $: evidence = dashboard.evidence;
+    $: hasMemoryEvidence = evidence?.memoryRmse != null;
+    $: hasPerfEvidence = (evidence?.perfResponses ?? 0) > 0;
+    $: hasEvidence = hasMemoryEvidence || hasPerfEvidence;
+
+    // Step 3 (turn performance into a score + range): a transparent, deliberately-wide
+    // projection. Item-weighted mean performance accuracy across covered sections, mapped
+    // linearly onto the MCAT total scale (472-528), with the band from the sections' Wilson
+    // bounds. Only when readiness is allowed AND performance has graded data. This is a
+    // display-layer index derived from the engine's validated performance - it is NOT
+    // validated against real MCAT results (that is Step 4).
+    const MCAT_MIN = 472;
+    const MCAT_MAX = 528;
+
+    interface Projected {
+        score: number;
+        low: number;
+        high: number;
+    }
+
+    function toMcat(acc: number): number {
+        return Math.round(MCAT_MIN + acc * (MCAT_MAX - MCAT_MIN));
+    }
+
+    function computeProjected(): Projected | null {
+        if (!readinessAllowed) return null;
+        let accW = 0;
+        let loW = 0;
+        let hiW = 0;
+        let w = 0;
+        for (const s of sections) {
+            const items = s.performanceItems ?? 0;
+            if (s.performance == null || items <= 0) continue;
+            accW += s.performance * items;
+            loW += (s.performanceLow ?? s.performance) * items;
+            hiW += (s.performanceHigh ?? s.performance) * items;
+            w += items;
+        }
+        if (w === 0) return null;
+        return { score: toMcat(accW / w), low: toMcat(loW / w), high: toMcat(hiW / w) };
+    }
+
+    $: projected = computeProjected();
+
     // User-facing copy built from the numbers (no engine jargon). MIN_REVIEWS mirrors
     // the engine's readiness review floor.
     const MIN_REVIEWS = 200;
-    const performanceLine =
-        "Measured once your deck has exam-style questions to answer - not yet.";
-    $: readinessLine = readinessAllowed
-        ? "You've studied enough of the exam to start tracking how ready you are."
-        : `Not enough to estimate yet: ${pct(overallCoverage)} of the exam covered `
-          + `(aim for ${giveUpPct}%) and ${totalReviews.toLocaleString()} of `
-          + `${MIN_REVIEWS} reviews done. This unlocks as you study.`;
+    $: hasPerformance = sections.some((s) => s.performance != null);
+
+    // The student's own aggregate recall / accuracy (weighted by how much backs each),
+    // so the copy can say how they're doing rather than define the metric.
+    function weightedMean(
+        value: (s: SpeedrunSection) => number | null | undefined,
+        weight: (s: SpeedrunSection) => number,
+    ): number | null {
+        let sum = 0;
+        let w = 0;
+        for (const s of sections) {
+            const v = value(s);
+            const wt = weight(s);
+            if (v == null || wt <= 0) continue;
+            sum += v * wt;
+            w += wt;
+        }
+        return w > 0 ? sum / w : null;
+    }
+
+    $: memAgg = weightedMean((s) => s.memory, (s) => s.reviewedCards ?? 0);
+    $: perfAgg = weightedMean((s) => s.performance, (s) => s.performanceItems ?? 0);
+
+    interface Reading {
+        tone: "live" | "warn" | "lock";
+        chip: string;
+        text: string;
+    }
+
+    $: memoryReading = ((): Reading => {
+        if (memAgg == null) {
+            return { tone: "lock", chip: "Locked", text: "Study some cards to start measuring your recall." };
+        }
+        if (memAgg >= 0.9) {
+            return { tone: "live", chip: "Strong", text: "You're holding onto what you've studied - keep up regular reviews to stay here." };
+        }
+        if (memAgg >= 0.8) {
+            return { tone: "live", chip: "Good", text: "Solid recall - a little more review will lock it in." };
+        }
+        if (memAgg >= 0.65) {
+            return { tone: "warn", chip: "Fair", text: "Your recall is shaky - review more often to strengthen it." };
+        }
+        return { tone: "warn", chip: "Weak", text: "Recall is low - make daily review a priority." };
+    })();
+
+    $: performanceReading = ((): Reading => {
+        if (perfAgg == null) {
+            return { tone: "lock", chip: "Locked", text: "Answer some exam-style questions to measure this." };
+        }
+        if (perfAgg >= 0.75) {
+            return { tone: "live", chip: "Strong", text: "You handle new, exam-style questions well - keep it up." };
+        }
+        if (perfAgg >= 0.6) {
+            return { tone: "live", chip: "Good", text: "Doing well on new questions - keep practicing to push higher." };
+        }
+        if (perfAgg >= 0.45) {
+            return { tone: "warn", chip: "Fair", text: "About half right on exam-style questions - more application practice will help." };
+        }
+        return { tone: "warn", chip: "Weak", text: "Application is the weak spot - focus your practice on exam-style questions." };
+    })();
+
+    $: readinessReading = ((): Reading => {
+        if (!projected) {
+            if (readinessAllowed) {
+                return { tone: "live", chip: "Tracking", text: "You've studied enough to start projecting your MCAT score range - answer some exam-style questions to get a number." };
+            }
+            return {
+                tone: "lock",
+                chip: "Locked",
+                text: `So far ${pct(overallCoverage)} of ${giveUpPct}% coverage and `
+                    + `${totalReviews.toLocaleString()} of ${MIN_REVIEWS} reviews - keep studying to unlock this.`,
+            };
+        }
+        const s = projected.score;
+        if (s >= 512) {
+            return { tone: "live", chip: "Competitive", text: `A projected ${s} is in a competitive range - you're in strong shape; keep it steady.` };
+        }
+        if (s >= 502) {
+            return { tone: "live", chip: "On track", text: `A projected ${s} is above the midpoint of the MCAT scale - a solid base; more study can push it higher.` };
+        }
+        if (s >= 492) {
+            return { tone: "warn", chip: "Building", text: `A projected ${s} is around the middle of the range (472-528) - keep studying to climb.` };
+        }
+        return { tone: "warn", chip: "Early", text: `A projected ${s} is below the midpoint - more study should move this up.` };
+    })();
 </script>
 
 <div class="speedrun">
@@ -83,8 +225,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     {#if isEmpty}
         <div class="note">
-            No MCAT cards yet. Add some and start reviewing - your coverage, memory,
-            and study plan fill in automatically.
+            No MCAT cards yet. Load the sample deck (or add your own) and start reviewing -
+            your coverage, memory, and study plan fill in automatically.
         </div>
     {/if}
 
@@ -99,6 +241,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                     <span class="pill no">Keep studying</span>
                 {/if}
             </div>
+            <div class="cov-track">
+                <span class="cov-fill" style="width: {pct(overallCoverage)}"></span>
+            </div>
             <div class="leaves">
                 {coveredLeaves} of {totalLeaves} topics covered
             </div>
@@ -111,7 +256,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                             <th class="num">Covered</th>
                             <th class="bar"></th>
                             <th class="num mem">Memory</th>
-                            <th class="num mem">Performance</th>
+                            {#if hasPerformance}
+                                <th class="num mem">Performance</th>
+                            {/if}
                         </tr>
                     </thead>
                     <tbody>
@@ -122,7 +269,9 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                                 </td>
                                 <td class="num">{pct(s.coverage)}</td>
                                 <td class="bar">
-                                    <span style="width: {pct(s.coverage)}"></span>
+                                    <div class="track">
+                                        <span style="width: {pct(s.coverage)}"></span>
+                                    </div>
                                 </td>
                                 <td
                                     class="num mem"
@@ -141,23 +290,25 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                                         {/if}
                                     {/if}
                                 </td>
-                                <td
-                                    class="num mem"
-                                    title={s.performanceItems
-                                        ? `${s.performanceItems} graded items`
-                                        : "gated: needs the validated model + enough items"}
-                                >
-                                    {#if s.performance == null}
-                                        <span class="dash">&mdash;</span>
-                                    {:else}
-                                        <span class="mem-point">{pct(s.performance)}</span>
-                                        {#if s.performanceLow != null && s.performanceHigh != null}
-                                            <span class="mem-range">
-                                                {pct(s.performanceLow)}&ndash;{pct(s.performanceHigh)}
-                                            </span>
+                                {#if hasPerformance}
+                                    <td
+                                        class="num mem"
+                                        title={s.performanceItems
+                                            ? `${s.performanceItems} answered items`
+                                            : "no answered exam-style items yet"}
+                                    >
+                                        {#if s.performance == null}
+                                            <span class="dash">&mdash;</span>
+                                        {:else}
+                                            <span class="mem-point">{pct(s.performance)}</span>
+                                            {#if s.performanceLow != null && s.performanceHigh != null}
+                                                <span class="mem-range">
+                                                    {pct(s.performanceLow)}&ndash;{pct(s.performanceHigh)}
+                                                </span>
+                                            {/if}
                                         {/if}
-                                    {/if}
-                                </td>
+                                    </td>
+                                {/if}
                             </tr>
                         {/each}
                     </tbody>
@@ -167,33 +318,8 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             {/if}
         </section>
 
-        <div class="stack">
-            <section class="panel">
-                <h2>Your progress</h2>
-                <div class="scores">
-                    <div class="score">
-                        <span class="score-label">Memory</span>
-                        <span class="score-body">
-                            How well you recall what you've studied - see the Memory
-                            column, with a range that tightens as you review more.
-                        </span>
-                    </div>
-                    <div class="score">
-                        <span class="score-label">Performance</span>
-                        <span class="score-body">{performanceLine}</span>
-                    </div>
-                    <div class="score">
-                        <span class="score-label">Readiness</span>
-                        <span class="score-body">{readinessLine}</span>
-                    </div>
-                </div>
-                <p class="fine">
-                    {totalReviews.toLocaleString()} reviews so far.
-                </p>
-            </section>
-
-            <section class="panel">
-                <h2>What to study next</h2>
+        <section class="panel">
+            <h2>What to study next</h2>
                 {#if plan.length}
                     <ol class="plan">
                         {#each plan as item}
@@ -215,27 +341,86 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 {:else}
                     <p class="muted">Nothing to recommend yet - keep studying.</p>
                 {/if}
-            </section>
-        </div>
+        </section>
     </div>
+
+    <section class="panel progress">
+        <h2>Your progress</h2>
+        <div class="scores">
+            <div class="score">
+                <div class="score-top">
+                    <span class="score-label">Memory</span>
+                    <span class="chip {memoryReading.tone}">{memoryReading.chip}</span>
+                </div>
+                {#if memAgg != null}
+                    <div class="score-num">
+                        {pct(memAgg)}
+                        <span class="ev-unit">recall</span>
+                    </div>
+                {/if}
+                {#if hasMemoryEvidence}
+                    <div class="ev-sub">
+                        calibrated to within {fmtPct(evidence?.memoryRmse)} over
+                        {(evidence?.memoryReviews ?? 0).toLocaleString()} reviews
+                    </div>
+                {/if}
+                <span class="score-body">{memoryReading.text}</span>
+            </div>
+            <div class="score">
+                <div class="score-top">
+                    <span class="score-label">Performance</span>
+                    <span class="chip {performanceReading.tone}">{performanceReading.chip}</span>
+                </div>
+                {#if perfAgg != null}
+                    <div class="score-num">
+                        {pct(perfAgg)}
+                        <span class="ev-unit">on exam-style questions</span>
+                    </div>
+                {/if}
+                {#if hasPerfEvidence}
+                    <div class="ev-sub">
+                        model AUC {fmt(evidence?.perfAucFull)} vs {fmt(evidence?.perfAucRecall)} recall-only
+                    </div>
+                {/if}
+                <span class="score-body">{performanceReading.text}</span>
+            </div>
+            <div class="score">
+                <div class="score-top">
+                    <span class="score-label">Readiness</span>
+                    <span class="chip {readinessReading.tone}">{readinessReading.chip}</span>
+                </div>
+                {#if projected}
+                    <div class="score-num">
+                        {projected.score}
+                        <span class="ev-unit">projected ({projected.low}&ndash;{projected.high})</span>
+                    </div>
+                {/if}
+                <span class="score-body">{readinessReading.text}</span>
+            </div>
+        </div>
+        <p class="fine">{totalReviews.toLocaleString()} reviews so far.</p>
+    </section>
 
 </div>
 
 <style lang="scss">
+    // Match Anki's native web pages: theme CSS variables (light/dark aware), the
+    // TitledContainer "card" look (elevated background, subtle border, underlined
+    // title), and the shared radii/accents - no hardcoded colours.
     .speedrun {
-        max-width: 860px;
+        max-width: 880px;
         margin: 0 auto;
         padding: 12px 16px 24px;
         color: var(--fg);
         font-size: var(--font-size);
-        line-height: 1.45;
+        line-height: 1.5;
     }
 
     .head {
         h1 {
-            margin: 6px 0 4px;
-            font-size: 1.35em;
-            font-weight: 700;
+            margin: 6px 0 10px;
+            font-size: 1.4em;
+            font-weight: 600;
         }
     }
 
@@ -243,9 +428,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         margin: 14px 0 4px;
         padding: 10px 12px;
         font-size: 0.9em;
-        border: 1px solid rgba(110, 168, 254, 0.4);
-        background: rgba(110, 168, 254, 0.12);
-        border-radius: 10px;
+        color: var(--fg-subtle);
+        border: 1px solid var(--border-subtle);
+        background: var(--canvas-elevated);
+        border-radius: var(--border-radius-medium, 10px);
 
         code {
             font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -260,29 +446,27 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
         @media (min-width: 760px) {
             grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-            align-items: start;
+            align-items: stretch;
         }
     }
 
-    .stack {
-        display: grid;
-        gap: 14px;
-        align-content: start;
+    .progress {
+        margin-top: 14px;
     }
 
     .panel {
-        padding: 14px 16px;
+        padding: 1rem 1.25rem 0.75rem;
         border: 1px solid var(--border-subtle);
-        border-radius: 12px;
+        border-radius: var(--border-radius-medium, 10px);
         background: var(--canvas-elevated);
 
         h2 {
-            margin: 0 0 10px;
-            font-size: 0.75em;
+            margin: 0 0 12px;
+            padding-bottom: 0.3em;
+            font-size: 1.05em;
             font-weight: 600;
-            letter-spacing: 0.4px;
-            text-transform: uppercase;
-            color: var(--fg-subtle);
+            color: var(--fg);
+            border-bottom: 1px solid var(--border);
         }
     }
 
@@ -299,28 +483,45 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         }
     }
 
+    .cov-track {
+        height: 8px;
+        margin: 10px 0 2px;
+        background: var(--canvas-inset);
+        border-radius: var(--border-radius, 5px);
+        overflow: hidden;
+    }
+
+    .cov-fill {
+        display: block;
+        height: 100%;
+        background: var(--accent-card);
+        border-radius: var(--border-radius, 5px);
+    }
+
     .leaves {
         margin: 4px 0 12px;
         color: var(--fg-subtle);
-        font-size: 0.8em;
+        font-size: 0.82em;
     }
 
+    // A quiet outlined chip (like a flag), tinted by the theme accent tokens.
     .pill {
         display: inline-block;
-        padding: 3px 9px;
-        border-radius: 999px;
+        padding: 2px 9px;
+        border: 1px solid transparent;
+        border-radius: var(--border-radius, 5px);
         font-size: 0.78em;
         font-weight: 600;
         white-space: nowrap;
 
         &.ok {
-            background: rgba(70, 211, 154, 0.18);
-            color: #2ea37a;
+            color: var(--accent-note);
+            border-color: var(--accent-note);
         }
 
         &.no {
-            background: rgba(255, 107, 107, 0.18);
-            color: #d9534f;
+            color: var(--accent-danger);
+            border-color: var(--accent-danger);
         }
     }
 
@@ -339,7 +540,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             text-align: left;
             font-weight: 600;
             color: var(--fg-subtle);
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border);
         }
 
         td {
@@ -361,11 +562,18 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         .bar {
             width: 42%;
 
+            .track {
+                height: 8px;
+                background: var(--canvas-inset);
+                border-radius: var(--border-radius, 5px);
+                overflow: hidden;
+            }
+
             span {
                 display: block;
-                height: 8px;
-                border-radius: 6px;
-                background: #6ea8fe;
+                height: 100%;
+                border-radius: var(--border-radius, 5px);
+                background: var(--accent-card);
             }
         }
 
@@ -391,12 +599,24 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
     .scores {
         display: grid;
-        gap: 10px;
+        gap: 10px 18px;
+
+        @media (min-width: 620px) {
+            grid-template-columns: 1fr 1fr 1fr;
+            align-items: start;
+        }
 
         .score {
             display: grid;
-            gap: 2px;
+            gap: 3px;
             font-size: 0.9em;
+            align-content: start;
+        }
+
+        .score-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .score-label {
@@ -405,6 +625,34 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
         .score-body {
             color: var(--fg-subtle);
+        }
+    }
+
+    // Status chip next to each score: honest "Locked" (with the reason in the body) until
+    // there is data, "Tracking" once there is - never a fabricated number.
+    .chip {
+        padding: 1px 8px;
+        border: 1px solid transparent;
+        border-radius: var(--border-radius, 5px);
+        font-size: 0.7em;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+
+        &.live {
+            color: var(--accent-note);
+            border-color: var(--accent-note);
+        }
+
+        &.lock {
+            color: var(--fg-faint);
+            border-color: var(--border);
+        }
+
+        &.warn {
+            color: var(--flag-2, #d9822b);
+            border-color: var(--flag-2, #d9822b);
         }
     }
 
@@ -421,7 +669,7 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         padding-left: 20px;
 
         li.prereq .reason {
-            color: #d9883b;
+            color: var(--flag-2);
         }
     }
 
@@ -430,46 +678,23 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         align-items: flex-start;
         gap: 8px;
 
-        .code {
-            flex: none;
-            font-weight: 700;
-        }
-
         .title {
             flex: 1 1 auto;
             min-width: 0;
             overflow-wrap: anywhere;
         }
-
-        .badges {
-            flex: none;
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-    }
-
-    .rung {
-        padding: 0 5px;
-        border: 1px solid rgba(110, 168, 254, 0.5);
-        border-radius: 5px;
-        font-size: 0.72em;
-        font-weight: 700;
-        white-space: nowrap;
-        color: #6ea8fe;
     }
 
     .prereq-badge {
         padding: 0 5px;
-        border: 1px solid rgba(217, 136, 59, 0.5);
-        border-radius: 5px;
+        border: 1px solid var(--flag-2);
+        border-radius: var(--border-radius, 5px);
         font-size: 0.7em;
         font-weight: 700;
         letter-spacing: 0.3px;
         text-transform: uppercase;
         white-space: nowrap;
-        color: #d9883b;
+        color: var(--flag-2);
     }
 
     .reason {
@@ -482,5 +707,26 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         margin: 4px 0 0;
         color: var(--fg-subtle);
         font-size: 0.88em;
+    }
+
+    .score-num {
+        font-size: 1.5em;
+        font-weight: 700;
+    }
+
+    .score-num {
+        margin: 2px 0;
+    }
+
+    .ev-unit {
+        font-size: 0.5em;
+        font-weight: 500;
+        color: var(--fg-subtle);
+    }
+
+    .ev-sub {
+        margin-top: 2px;
+        font-size: 0.76em;
+        color: var(--fg-faint);
     }
 </style>

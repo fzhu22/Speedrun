@@ -371,6 +371,19 @@ class ReviewerFragment :
 
         binding.answerArea.setRelativeHeight(Prefs.newStudyScreenAnswerButtonSize)
 
+        // Speedrun SPOV 1: set "Again" apart from the pass grades when enabled (synced config).
+        lifecycleScope.launch {
+            val split =
+                try {
+                    com.ichi2.anki.CollectionManager.withCol {
+                        config.get<Boolean>("speedrun_grading_split_enabled") ?: true
+                    }
+                } catch (e: Exception) {
+                    true
+                }
+            binding.answerArea.setGradingSplit(split)
+        }
+
         viewModel.answerButtonsNextTimeFlow
             .flowWithLifecycle(lifecycle)
             .collectIn(lifecycleScope) { times ->

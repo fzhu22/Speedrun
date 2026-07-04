@@ -24,6 +24,7 @@ use anki_proto::speedrun::speedrun_dashboard_response::PlanItem;
 use anki_proto::speedrun::speedrun_dashboard_response::SectionRow;
 use anki_proto::speedrun::SpeedrunDashboardRequest;
 use anki_proto::speedrun::SpeedrunDashboardResponse;
+use anki_proto::speedrun::SpeedrunEvidence;
 use anki_proto::stats::TopicMasteryRequest;
 
 use super::coverage;
@@ -275,6 +276,22 @@ impl Collection {
             format!("ABSTAIN - {}", reasons.join("; "))
         };
 
+        // Score-model evidence (Steps 1 & 2), read from the cache the fit tier writes.
+        let evidence = self
+            .get_config_optional::<super::performance::EvidenceCache, _>(
+                super::performance::EVIDENCE_CONFIG_KEY,
+            )
+            .map(|e| SpeedrunEvidence {
+                memory_log_loss: e.memory_log_loss,
+                memory_rmse: e.memory_rmse,
+                memory_reviews: e.memory_reviews,
+                perf_auc_full: Some(e.perf_auc_full),
+                perf_auc_recall: Some(e.perf_auc_recall),
+                perf_auc_delta: Some(e.perf_auc_delta),
+                perf_responses: e.perf_responses,
+                perf_passed: e.perf_passed,
+            });
+
         Ok(SpeedrunDashboardResponse {
             overall_coverage: cov.overall,
             covered_leaves: cov.covered_leaves,
@@ -286,6 +303,7 @@ impl Collection {
             performance_status: perf.status,
             readiness_status,
             plan,
+            evidence,
         })
     }
 }

@@ -3,14 +3,13 @@
 
 """Speedrun on the home screen (deck browser).
 
-Surfaces the flagship features - the readiness dashboard, the miss->card authoring flow,
-the study-feature toggles, and sample-deck seeding - as a panel at the top of the deck
-list, so they are one click away instead of buried in the Tools menu.
+Surfaces the core features - the readiness dashboard, the miss->card disconfirmer flow,
+and sample-deck seeding - as a compact panel below the deck list, one click away instead
+of buried in the Tools menu. Before any Speedrun content exists it shows a short first-run
+hint that points at "Load sample deck".
 
 Injected via ``deck_browser_will_render_content``; the button clicks (namespaced
-``speedrun:*`` pycmd messages) are handled via ``webview_did_receive_js_message``. The
-panel is intentionally query-free so it never slows the home screen; the live numbers
-live one click away in the dashboard.
+``speedrun:*`` pycmd messages) are handled via ``webview_did_receive_js_message``.
 """
 
 from __future__ import annotations
@@ -21,21 +20,22 @@ import aqt
 import aqt.main
 from aqt.utils import tooltip
 
-_PANEL = """\
+_STYLE = """\
 <style>
-/* A centered row of equal-size pill buttons, matching Anki's bottom-bar buttons. Every
-   button is the same fixed width and height; the row centers and wraps (never overflows)
-   if the window is too narrow to hold all four. */
+/* A centered row of equal-size pill buttons (matching Anki's bottom-bar buttons), with an
+   optional first-run hint above. Buttons share one fixed width/height, center, and wrap
+   (never overflow) if the window is too narrow. */
 .speedrun-home {
-  display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
-  gap: 10px; box-sizing: border-box;
-  width: min(660px, 96%); margin: 0.4em auto 0.2em; padding: 10px 12px;
+  box-sizing: border-box; width: min(660px, 96%); margin: 0.4em auto 0.2em;
+  padding: 9px 12px; text-align: center;
   border: 1px solid var(--border-subtle); border-radius: var(--border-radius-medium, 12px);
   background: var(--canvas-glass, var(--canvas-elevated));
 }
+.speedrun-home .sr-hint { font-size: .85em; color: var(--fg-subtle); margin: 0 0 8px; }
+.speedrun-home .sr-row { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; }
 .speedrun-home .sr-btn {
   -webkit-appearance: none; cursor: pointer; font: inherit; font-size: .95em;
-  box-sizing: border-box; flex: 0 0 auto; width: 128px; text-align: center;
+  box-sizing: border-box; flex: 0 0 auto; width: 150px; text-align: center;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   padding: 6px 12px; border-radius: var(--border-radius-large, 15px);
   border: 1px solid var(--border-subtle); border-bottom-color: var(--shadow);
@@ -52,13 +52,63 @@ _PANEL = """\
   background: linear-gradient(180deg, var(--button-primary-gradient-start) 0%, var(--button-primary-gradient-end) 100%);
 }
 </style>
-<div class="speedrun-home">
-  <button class="sr-btn primary" title="Open the readiness dashboard" onclick="pycmd('speedrun:dashboard'); return false;">Dashboard</button>
-  <button class="sr-btn" title="Turn a missed card into a disconfirmer" onclick="pycmd('speedrun:add'); return false;">Disconfirmer</button>
-  <button class="sr-btn" title="Toggle study features (ablation)" onclick="pycmd('speedrun:features'); return false;">Features</button>
-  <button class="sr-btn" title="Seed the sample MCAT decks" onclick="pycmd('speedrun:seed'); return false;">Sample decks</button>
-</div>
 """
+
+_DISC_TIP = "A disconfirmer is the one fact that, if true, would flip the answer."
+
+
+def _btn(cls: str, cmd: str, tip: str, label: str) -> str:
+    return (
+        f'<button class="{cls}" title="{tip}" '
+        f"onclick=\"pycmd('speedrun:{cmd}'); return false;\">{label}</button>"
+    )
+
+
+def _panel(first_run: bool) -> str:
+    """Build the home panel. On first run (no Speedrun content yet) it shows a hint and
+    makes "Load sample deck" the primary call to action; afterwards "Dashboard" is."""
+    hint = (
+        '<div class="sr-hint">New to Speedrun? Load the sample deck to see coverage, '
+        "memory, and your study plan.</div>"
+        if first_run
+        else ""
+    )
+    buttons = (
+        _btn(
+            "sr-btn" if first_run else "sr-btn primary",
+            "dashboard",
+            "Open the readiness dashboard",
+            "Dashboard",
+        )
+        + _btn("sr-btn", "add", _DISC_TIP, "Add disconfirmer")
+        + _btn(
+            "sr-btn primary" if first_run else "sr-btn",
+            "seed",
+            "Load the sample MCAT, disconfirmer, pretest, and Qbank decks",
+            "Load sample deck",
+        )
+    )
+    return (
+        _STYLE
+        + '<div class="speedrun-home">'
+        + hint
+        + '<div class="sr-row">'
+        + buttons
+        + "</div></div>"
+    )
+
+
+def _has_speedrun_content(col) -> bool:
+    """Whether the collection already has any Speedrun/MCAT cards (drives the first-run
+    hint). Bounded, indexed search; on any error assume yes (hide the hint)."""
+    try:
+        search = (
+            'tag:MCAT::* OR note:"Speedrun Disconfirmer" '
+            'OR note:"Speedrun Pretest" OR note:"Speedrun Performance Item"'
+        )
+        return bool(col.find_cards(search))
+    except Exception:
+        return True
 
 
 def on_render(deck_browser, content) -> None:
@@ -66,7 +116,8 @@ def on_render(deck_browser, content) -> None:
     if aqt.mw is None or aqt.mw.col is None:
         return
     try:
-        content.stats = content.stats + _PANEL
+        first_run = not _has_speedrun_content(aqt.mw.col)
+        content.stats = content.stats + _panel(first_run)
     except Exception as exc:  # never break the home screen
         print("speedrun: home panel failed:", exc)
 
@@ -84,10 +135,6 @@ def on_message(handled: Tuple[bool, Any], message: str, context: Any) -> Tuple[b
             aqt.dialogs.open("SpeedrunDashboard", mw)
         elif cmd == "add":
             aqt.dialogs.open("SpeedrunAuthoring", mw)
-        elif cmd == "features":
-            from . import feature_settings
-
-            feature_settings.show_speedrun_features(mw)
         elif cmd == "seed":
             from anki.speedrun import seeding
 

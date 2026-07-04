@@ -43,4 +43,17 @@ impl crate::services::SpeedrunService for Collection {
     fn speedrun_ensure_notetypes(&mut self) -> error::Result<()> {
         self.speedrun_ensure_notetypes()
     }
+
+    fn speedrun_authoring_guidance(
+        &mut self,
+        input: anki_proto::speedrun::SpeedrunGuidanceRequest,
+    ) -> error::Result<anki_proto::speedrun::SpeedrunGuidanceResponse> {
+        self.speedrun_authoring_guidance(input)
+    }
+
+    fn speedrun_fit_performance(
+        &mut self,
+    ) -> error::Result<anki_proto::speedrun::SpeedrunFitPerformanceResponse> {
+        self.speedrun_fit_performance()
+    }
 }

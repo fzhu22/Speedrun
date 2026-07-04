@@ -174,6 +174,26 @@ ci branch:
 complexipy-diff:
     {{ ninja }} check:complexipy-diff
 
+# Speedrun perf benchmark on a 50k-card deck (spec 7h + section 10); builds the deck if missing
+bench:
+    {{ ninja }} pylib qt
+    {{ pyenv_python }} testdeck/build_bench_deck.py --out testdeck/bench.anki2 --skip-if-exists
+    {{ pyenv_python }} testdeck/bench.py --col testdeck/bench.anki2
+
+# Speedrun honesty evals: calibration (9.1), performance (7d/7e), AI classifier (7e), AI card check (7f)
+eval:
+    {{ ninja }} pylib qt
+    {{ pyenv_python }} testdeck/build_bench_deck.py --out testdeck/bench.anki2 --skip-if-exists
+    {{ pyenv_python }} testdeck/calibration.py --col testdeck/bench.anki2
+    {{ pyenv_python }} testdeck/eval_performance.py
+    {{ pyenv_python }} testdeck/run_ai_eval.py
+    {{ pyenv_python }} testdeck/run_ai_card_check.py
+
+# Speedrun crash + offline resilience (spec 7g)
+crash-test:
+    {{ ninja }} pylib qt
+    {{ pyenv_python }} testdeck/crash_test.py
+
 # Remove build outputs from out/ (pass keep-env to keep node_modules/pyenv); macOS/Linux
 clean *args:
     ./tools/clean {{ args }}
@@ -182,6 +202,7 @@ clean *args:
 
 ninja := if os() == "windows" { "tools\\ninja" } else { "./ninja" }
 run_script := if os() == "windows" { ".\\run.bat" } else { "./run" }
+pyenv_python := if os() == "windows" { "out\\pyenv\\Scripts\\python" } else { "out/pyenv/bin/python" }
 playwright_env := if os() == "windows" { "set PLAYWRIGHT_BROWSERS_PATH=out\\playwright-browsers&&" } else { "PLAYWRIGHT_BROWSERS_PATH=out/playwright-browsers" }
 yarn := if os() == "windows" { "out\\extracted\\node\\yarn.cmd" } else { "out/extracted/node/bin/yarn" }
 uv := env("UV_BINARY", if os() == "windows" { "out\\extracted\\uv\\uv" } else { "out/extracted/uv/uv" })

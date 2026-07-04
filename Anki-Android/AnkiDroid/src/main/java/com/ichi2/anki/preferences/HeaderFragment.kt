@@ -245,6 +245,7 @@ class HeaderFragment : SettingsFragment() {
             when (fragment) {
                 is GeneralSettingsFragment -> R.string.pref_general_screen_key
                 is ReviewingSettingsFragment -> R.string.pref_reviewing_screen_key
+                is SpeedrunSettingsFragment -> R.string.pref_speedrun_screen_key
                 is SyncSettingsFragment, is CustomSyncServerSettingsFragment -> R.string.pref_sync_screen_key
                 is NotificationsSettingsFragment -> R.string.pref_notifications_screen_key
                 is AppearanceSettingsFragment, is CustomButtonsSettingsFragment -> R.string.pref_appearance_screen_key

@@ -43,5 +43,14 @@ If you want to use a string in your code that can't be translated, please use:
     <string name="speedrun_disconfirmer_hint" comment="Do not translate; feature in development. Hint shown in the disconfirmer text field.">Name one fact that would change your mind</string>
     <string name="speedrun_disconfirmer_save" comment="Do not translate; feature in development. Button that saves the disconfirmer.">Save</string>
     <string name="speedrun_disconfirmer_save_anyway" comment="Do not translate; feature in development. Title asking whether to save a disconfirmer that the backend flagged as weak.">Save anyway?</string>
+    <string name="speedrun_disconfirmer_get_hint" comment="Do not translate; feature in development. Button that asks for a Socratic hint while authoring a disconfirmer.">Get a hint</string>
+    <string name="speedrun_settings_summary" comment="Do not translate; feature in development. Subtitle for the Speedrun settings screen.">MCAT study features</string>
+    <string name="speedrun_pref_disconfirmer" comment="Do not translate; feature in development. Toggle for the in-review disconfirmer prompt.">In-review disconfirmer prompt</string>
+    <string name="speedrun_pref_fading" comment="Do not translate; feature in development. Toggle for per-family support fading.">Per-family support fading</string>
+    <string name="speedrun_pref_grading_split" comment="Do not translate; feature in development. Toggle for the grading-row split.">Set Again apart from Hard / Good / Easy</string>
+    <string name="speedrun_pref_authoring_guide" comment="Do not translate; feature in development. Toggle for the Add-card guidance + AI hint.">Question-writing guidance and AI hint when adding cards</string>
+    <string name="speedrun_pref_ai" comment="Do not translate; feature in development. Toggle for the optional AI helper.">AI hints</string>
+    <string name="speedrun_pref_fit_performance" comment="Do not translate; feature in development. Action that fits the performance model.">Fit performance model</string>
+    <string name="speedrun_pref_fit_performance_summary" comment="Do not translate; feature in development. Subtitle for the fit-performance action.">Recompute whether the performance score has earned its place</string>
 </resources>
 

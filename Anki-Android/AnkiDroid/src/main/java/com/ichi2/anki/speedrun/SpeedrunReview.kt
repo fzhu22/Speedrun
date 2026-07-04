@@ -4,9 +4,11 @@ package com.ichi2.anki.speedrun
 
 import android.text.TextUtils
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.text.HtmlCompat
+import com.google.android.material.button.MaterialButton
 import androidx.fragment.app.FragmentActivity
 import anki.scheduler.CardAnswer.Rating
 import com.ichi2.anki.CollectionManager.withCol
@@ -161,6 +163,28 @@ object SpeedrunReview {
                     HtmlCompat.FROM_HTML_MODE_LEGACY,
                 )
 
+            // Optional AI hint: a Socratic nudge (never the answer). Marks the card as
+            // "assisted" so the desktop's anti-crutch monitor can compare cohorts.
+            var hintUsed = false
+            val hintLabel = view.findViewById<TextView>(R.id.speedrun_disconfirmer_hint_text)
+            view.findViewById<MaterialButton>(R.id.speedrun_disconfirmer_hint_button).setOnClickListener {
+                activity.launchCatchingTask {
+                    val hint =
+                        try {
+                            withCol { backend.speedrunDisconfirmerHint(question = question, answer = answer) }
+                        } catch (e: Exception) {
+                            Timber.w(e, "speedrun: disconfirmerHint failed")
+                            null
+                        }
+                    if (hint != null && hint.text.isNotEmpty()) {
+                        hintUsed = true
+                        val label = if (hint.source.startsWith("AI")) "AI hint" else "Hint"
+                        hintLabel.text = "$label: ${hint.text}"
+                        hintLabel.visibility = View.VISIBLE
+                    }
+                }
+            }
+
             AlertDialog
                 .Builder(activity)
                 .show {
@@ -176,7 +200,7 @@ object SpeedrunReview {
                     val disconfirmer = text.toString()
                     dialog.dismiss()
                     activity.launchCatchingTask {
-                        saveDisconfirmer(activity, cardId, disconfirmer)
+                        saveDisconfirmer(activity, cardId, disconfirmer, hintUsed)
                     }
                 }
         } catch (e: Exception) {
@@ -192,6 +216,7 @@ object SpeedrunReview {
         activity: FragmentActivity,
         cardId: CardId,
         disconfirmer: String,
+        assisted: Boolean = false,
     ) {
         val problem =
             try {
@@ -212,7 +237,7 @@ object SpeedrunReview {
                         title(R.string.speedrun_disconfirmer_save_anyway)
                         message(text = problem)
                         positiveButton(R.string.dialog_ok) {
-                            activity.launchCatchingTask { createDisconfirmer(cardId, disconfirmer) }
+                            activity.launchCatchingTask { createDisconfirmer(cardId, disconfirmer, assisted) }
                         }
                         negativeButton(R.string.dialog_cancel)
                     }
@@ -222,12 +247,13 @@ object SpeedrunReview {
             return
         }
 
-        createDisconfirmer(cardId, disconfirmer)
+        createDisconfirmer(cardId, disconfirmer, assisted)
     }
 
     private suspend fun createDisconfirmer(
         cardId: CardId,
         disconfirmer: String,
+        assisted: Boolean = false,
     ) {
         try {
             withCol {
@@ -235,7 +261,7 @@ object SpeedrunReview {
                     cardId = cardId,
                     disconfirmer = disconfirmer,
                     principle = "",
-                    assisted = false,
+                    assisted = assisted,
                 )
             }
         } catch (e: Exception) {

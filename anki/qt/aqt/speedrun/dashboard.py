@@ -30,15 +30,12 @@ class SpeedrunDashboard(QDialog):
 
         layout = QVBoxLayout(self)
         buttons = QHBoxLayout()
-        self.seed_btn = QPushButton("Load sample MCAT deck")
+        self.seed_btn = QPushButton("Load sample deck")
         qconnect(self.seed_btn.clicked, self.on_seed)
-        self.add_btn = QPushButton("Add disconfirmer card")
+        self.add_btn = QPushButton("Add disconfirmer")
         qconnect(self.add_btn.clicked, lambda: aqt.dialogs.open("SpeedrunAuthoring", self.mw))
-        self.refresh_btn = QPushButton("Refresh")
-        qconnect(self.refresh_btn.clicked, self.refresh)
         buttons.addWidget(self.seed_btn)
         buttons.addWidget(self.add_btn)
-        buttons.addWidget(self.refresh_btn)
         buttons.addStretch()
         layout.addLayout(buttons)
 

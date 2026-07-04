@@ -38,6 +38,60 @@ pub(crate) const DISCONFIRMER_DECK: &str = "Speedrun Disconfirmers";
 /// The "::" tag prefix that scopes MCAT cards.
 pub(crate) const TAG_PREFIX: &str = "MCAT";
 
+/// Cap the title segment so tags stay readable; the code segment is the key.
+const MAX_TITLE_TAG_LEN: usize = 48;
+
+/// A content-category title turned into one tag segment: tag-search metachars and
+/// punctuation dropped, whitespace -> underscores, capped at a word boundary.
+/// Mirrors `_tag_safe_title` in `pylib/anki/speedrun/disconfirmer.py`.
+fn tag_safe_title(title: &str) -> String {
+    let cleaned: String = title
+        .chars()
+        .filter(|c| !"\"'*:,()&/".contains(*c))
+        .collect();
+    // collapse any run of whitespace or underscores into a single underscore
+    let mut out = String::new();
+    let mut prev_us = false;
+    for c in cleaned.chars() {
+        if c.is_whitespace() || c == '_' {
+            if !prev_us {
+                out.push('_');
+                prev_us = true;
+            }
+        } else {
+            out.push(c);
+            prev_us = false;
+        }
+    }
+    let mut result = out.trim_matches('_').to_string();
+    if result.chars().count() > MAX_TITLE_TAG_LEN {
+        let cut: String = result.chars().take(MAX_TITLE_TAG_LEN).collect();
+        result = match cut.rsplit_once('_') {
+            Some((head, _)) => head.to_string(),
+            None => cut,
+        };
+    }
+    result
+}
+
+/// The readable MCAT tag for a content-category code: `MCAT::<code>::<Title>` (or
+/// just `MCAT::<code>` when no title is known). The code stays its own `::`
+/// segment so coverage still maps it. Mirrors `topic_tag` in the Python.
+pub(crate) fn topic_tag(code: &str) -> String {
+    let base = format!("{TAG_PREFIX}::{code}");
+    match super::outline::title_for_code(code) {
+        Some(title) => {
+            let safe = tag_safe_title(title);
+            if safe.is_empty() {
+                base
+            } else {
+                format!("{base}::{safe}")
+            }
+        }
+        None => base,
+    }
+}
+
 const DISCONFIRMER_FIELDS: &[&str] = &[
     "Principle",
     "OriginalCoverStory",
@@ -407,7 +461,7 @@ impl Collection {
 
             let mut tags = vec![NOTE_TAG.to_string()];
             if !family.is_empty() {
-                tags.push(format!("{TAG_PREFIX}::{family}"));
+                tags.push(topic_tag(&family));
             }
             if assisted {
                 tags.push(ASSISTED_TAG.to_string());

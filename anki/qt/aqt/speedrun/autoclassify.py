@@ -44,13 +44,17 @@ def on_overview_refresh(overview) -> None:
     if not items:
         return
 
-    client = ai.resolve_client(col)
+    # Auto-classification uses the INSTANT heuristic (client=None): doing a per-card AI
+    # network call on every Overview refresh floods the API and freezes the UI (dozens of
+    # blocking calls). The heuristic is enough for disconfirmer gating; full AI
+    # classification stays available on demand via Tools > Speedrun.
+    client = None
     model = ai.get_config(col)["model"]
     gate_cached = ai.classifier_gate(col).get(model)
     _running = True
 
     def task():
-        # Network only (gate eval + classification) - no collection writes off-thread.
+        # Heuristic only (no network) - no collection writes off-thread.
         return ai.classify_items(client, items, gate_cached)
 
     def on_done(fut) -> None:

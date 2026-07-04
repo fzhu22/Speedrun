@@ -27,11 +27,25 @@ service SpeedrunService {
   rpc SpeedrunCreateDisconfirmer(SpeedrunCreateDisconfirmerRequest) returns (SpeedrunCreateDisconfirmerResponse);
   // Write: create the Speedrun note types (Disconfirmer + Pretest) if missing.
   rpc SpeedrunEnsureNotetypes(anki.generic.Empty) returns (anki.generic.Empty);
+  // Read-only: deterministic question-writing guidance for the Add-card flow.
+  rpc SpeedrunAuthoringGuidance(SpeedrunGuidanceRequest) returns (SpeedrunGuidanceResponse);
+  // Write: fit the performance model from the review log and set the
+  // performance-enabled flag (the desktop "Fit Performance Model" step).
+  rpc SpeedrunFitPerformance(anki.generic.Empty) returns (SpeedrunFitPerformanceResponse);
 }
 
-// Implicitly includes any of the above methods that are not listed in the
-// backend service.
-service BackendSpeedrunService {}
+// The AI lane: outbound HTTPS to the Speedrun proxy, so these run on Backend
+// (which owns the tokio runtime + web client). Each degrades to a deterministic
+// template when AI is off. Everything else in SpeedrunService is delegated to
+// Collection.
+service BackendSpeedrunService {
+  // Advice on what ELSE to add to a draft card (never rewrites it).
+  rpc SpeedrunCardAdvice(SpeedrunAdviceRequest) returns (SpeedrunAiResponse);
+  // Concept ideas for an empty card in a chosen topic.
+  rpc SpeedrunTopicIdeas(SpeedrunTopicIdeasRequest) returns (SpeedrunAiResponse);
+  // A Socratic hint for authoring a disconfirmer (never the answer).
+  rpc SpeedrunDisconfirmerHint(SpeedrunHintRequest) returns (SpeedrunAiResponse);
+}
 
 message SpeedrunDashboardRequest {
   // "::" tag prefix that scopes MCAT cards; defaults to "MCAT" when empty.
@@ -96,6 +110,31 @@ message SpeedrunDashboardResponse {
   // The readiness abstain reason, or "allowed".
   string readiness_status = 9;
   repeated PlanItem plan = 10;
+  // The score-model "prove it" evidence (spec section 9 Steps 1 & 2): memory
+  // calibration on held-back reviews + the performance model's incremental-validity
+  // gate. Cached by the fit tier; unset until it has been computed at least once.
+  optional SpeedrunEvidence evidence = 11;
+}
+
+// Score-model evidence surfaced read-only on the dashboard (spec section 9).
+// Computed by the fit tier (speedrun_fit_performance) and cached in collection config,
+// so the read-only dashboard can show it without the expensive recompute each load.
+message SpeedrunEvidence {
+  // Step 1 - memory calibration on held-back reviews (FSRS time-series-split eval).
+  // log_loss is a proper score; rmse is the calibration error across probability bins
+  // (the reliability-diagram summary): small rmse == "says 80% -> recalls ~80%".
+  // All unset when there is not enough review history to evaluate.
+  optional float memory_log_loss = 1;
+  optional float memory_rmse = 2;
+  uint32 memory_reviews = 3;
+  // Step 2 - the performance model's incremental validity: out-of-sample AUC of the
+  // full model (topic mastery + difficulty + timing + coverage) vs a recall-only model.
+  // Performance ships only when the full model beats recall by the required margin.
+  optional float perf_auc_full = 4;
+  optional float perf_auc_recall = 5;
+  optional float perf_auc_delta = 6;
+  uint32 perf_responses = 7;
+  bool perf_passed = 8;
 }
 
 message SpeedrunRecordReviewRequest {
@@ -145,4 +184,52 @@ message SpeedrunCreateDisconfirmerRequest {
 
 message SpeedrunCreateDisconfirmerResponse {
   int64 note_id = 1;
+}
+
+message SpeedrunGuidanceRequest {
+  // The explicitly chosen content-category code (e.g. "1A"); empty = infer.
+  string code = 1;
+  // The note's tags + target deck, used to infer a topic when code is empty.
+  repeated string tags = 2;
+  string deck_name = 3;
+}
+
+message SpeedrunGuidanceResponse {
+  // Guidance lines: a lead line followed by the universal tips.
+  repeated string lines = 1;
+  // The resolved topic (empty when none), so the UI can show/select it.
+  string code = 2;
+  string title = 3;
+}
+
+message SpeedrunFitPerformanceResponse {
+  bool passed = 1;
+  uint32 n = 2;
+  float auc_full = 3;
+  float auc_recall = 4;
+  float delta = 5;
+  uint32 min_responses = 6;
+  float min_delta = 7;
+}
+
+// Shared response for the AI helpers: the text plus its named source
+// ("AI:<model>" or "template"), so every output is traceable (the honesty rule).
+message SpeedrunAiResponse {
+  string text = 1;
+  string source = 2;
+}
+
+message SpeedrunAdviceRequest {
+  string question = 1;
+  string answer = 2;
+  string topic = 3;
+}
+
+message SpeedrunTopicIdeasRequest {
+  string topic = 1;
+}
+
+message SpeedrunHintRequest {
+  string question = 1;
+  string answer = 2;
 }

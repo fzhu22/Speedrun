@@ -6,7 +6,7 @@ real key as a server secret and forwards requests to OpenAI.
 
 ```mermaid
 flowchart LR
-  app["Desktop app (ai.py)"] -- "Bearer APP_TOKEN" --> proxy
+  app["Desktop app (ai.py)"] -- "Bearer app token" --> proxy
   subgraph fly [Fly.io]
     proxy["AI proxy /v1/chat/completions"]
   end
@@ -43,13 +43,26 @@ Generate a strong app token, e.g. `python -c "import secrets; print(secrets.toke
 
 ## Wire it into the client
 
-Set the client's baked constants in [../../pylib/anki/speedrun/ai.py](../../pylib/anki/speedrun/ai.py):
+No secret is baked into source. Provide the proxy URL + app token at runtime, either via
+env vars:
 
-- `DEFAULT_PROXY_URL = "https://speedrun-ai-<you>.fly.dev/v1"`
-- `APP_TOKEN = "<the SPEEDRUN_PROXY_TOKEN you set above>"`
+- `SPEEDRUN_PROXY_URL = "https://speedrun-ai-<you>.fly.dev/v1"`
+- `SPEEDRUN_PROXY_TOKEN = "<the SPEEDRUN_PROXY_TOKEN you set above>"`
 
-The client then talks to the proxy automatically; no OpenAI key lives in the app or its
-UI. (`SPEEDRUN_AI_KEY` in the environment still overrides for local development.)
+or via a gitignored local config file `speedrun-ai.local.json` (searched from the working
+directory and repo root), for local and demo builds:
+
+```json
+{
+  "proxy_url": "https://speedrun-ai-<you>.fly.dev/v1",
+  "proxy_token": "<the SPEEDRUN_PROXY_TOKEN you set above>"
+}
+```
+
+With nothing set the app runs with AI off (deterministic fallback). `SPEEDRUN_AI_KEY` (a
+real OpenAI key, via env, an `openai_key` entry in the local file, or the first line of a
+gitignored `api-key` file) still overrides for local development and talks to OpenAI
+directly.
 
 ## Rotate / revoke the app token
 
@@ -59,7 +72,8 @@ If the app token leaks, rotate it without touching the real key:
 fly secrets set SPEEDRUN_PROXY_TOKEN="<new-token>"
 ```
 
-Then update `APP_TOKEN` in `ai.py` and ship a new build. The old token stops working
+Then set the new token via env (`SPEEDRUN_PROXY_TOKEN`) or the local config file - nothing
+to rebuild, since it is no longer baked into source. The old token stops working
 immediately.
 
 ## Cost

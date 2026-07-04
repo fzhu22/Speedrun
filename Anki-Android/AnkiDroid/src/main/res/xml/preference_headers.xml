@@ -54,6 +54,13 @@
         app:summaryEntries="@array/reviewing_summary_entries">
     </com.ichi2.preferences.HeaderPreference>
 
+    <!-- Speedrun Preferences -->
+    <com.ichi2.preferences.HeaderPreference
+        android:fragment="com.ichi2.anki.preferences.SpeedrunSettingsFragment"
+        android:key="@string/pref_speedrun_screen_key"
+        android:title="@string/speedrun"
+        android:icon="@drawable/ic_running_clock" />
+
     <!-- Sync Preferences -->
     <com.ichi2.preferences.HeaderPreference
         android:fragment="com.ichi2.anki.preferences.SyncSettingsFragment"

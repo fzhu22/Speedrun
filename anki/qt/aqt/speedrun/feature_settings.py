@@ -34,8 +34,9 @@ def show_speedrun_features(mw: aqt.main.AnkiQt) -> None:
     layout = QVBoxLayout(dialog)
 
     intro = QLabel(
-        "Turn each study feature on or off. Changes apply to new reviews and new "
-        "cards; existing cards are left as-is."
+        "These study features are on by default. Turn any off to compare how you learn "
+        "with and without it. Changes apply to new reviews and new cards; existing cards "
+        "are left as-is."
     )
     intro.setWordWrap(True)
     layout.addWidget(intro)
@@ -52,7 +53,9 @@ def show_speedrun_features(mw: aqt.main.AnkiQt) -> None:
     fade_cb.setChecked(state.fading_enabled(col))
     layout.addWidget(fade_cb)
 
-    grade_cb = QCheckBox('Set "Again" apart from Hard / Good / Easy when grading')
+    grade_cb = QCheckBox(
+        'Separate the "Again" button from Hard / Good / Easy (so "Hard" reads as a pass, not a fail)'
+    )
     grade_cb.setChecked(state.grading_split_enabled(col))
     layout.addWidget(grade_cb)
 

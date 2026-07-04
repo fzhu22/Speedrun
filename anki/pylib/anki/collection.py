@@ -298,6 +298,46 @@ class Collection(DeprecatedNamesMixin):
         missing (idempotent), computed once in the shared engine."""
         self._backend.speedrun_ensure_notetypes()
 
+    def speedrun_authoring_guidance(
+        self, *, code: str = "", tags: list[str] | None = None, deck_name: str = ""
+    ) -> speedrun_pb2.SpeedrunGuidanceResponse:
+        """Speedrun: deterministic question-writing guidance for the Add-card flow
+        (shared engine), resolving the topic from ``code`` or the tags/deck."""
+        return self._backend.speedrun_authoring_guidance(
+            code=code, tags=tags or [], deck_name=deck_name
+        )
+
+    def speedrun_fit_performance(
+        self,
+    ) -> speedrun_pb2.SpeedrunFitPerformanceResponse:
+        """Speedrun: fit the performance model from the review log and set the
+        performance-enabled flag (shared-engine port of "Fit Performance Model")."""
+        return self._backend.speedrun_fit_performance()
+
+    def speedrun_card_advice(
+        self, *, question: str, answer: str = "", topic: str = ""
+    ) -> speedrun_pb2.SpeedrunAiResponse:
+        """Speedrun AI: advice on what else to add to a draft card (never rewrites
+        it). Degrades to a deterministic template when AI is off."""
+        return self._backend.speedrun_card_advice(
+            question=question, answer=answer, topic=topic
+        )
+
+    def speedrun_topic_ideas(
+        self, *, topic: str = ""
+    ) -> speedrun_pb2.SpeedrunAiResponse:
+        """Speedrun AI: concept ideas for an empty card in a chosen topic."""
+        return self._backend.speedrun_topic_ideas(topic=topic)
+
+    def speedrun_disconfirmer_hint(
+        self, *, question: str, answer: str = ""
+    ) -> speedrun_pb2.SpeedrunAiResponse:
+        """Speedrun AI: a Socratic hint for authoring a disconfirmer (never the
+        answer)."""
+        return self._backend.speedrun_disconfirmer_hint(
+            question=question, answer=answer
+        )
+
     # Scheduler
     ##########################################################################
 

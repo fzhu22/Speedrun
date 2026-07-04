@@ -36,6 +36,16 @@
             android:backgroundTint="?againBackgroundColor"
             android:layout_weight="1" />
 
+        <!-- Speedrun SPOV 1: a gated divider that sets "Again" (the only failure) apart from
+             the Hard/Good/Easy pass cluster. Toggled by speedrun_grading_split_enabled. -->
+        <View
+            android:id="@+id/speedrun_grade_divider"
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="4dp"
+            android:background="#9E9E9E"
+            android:visibility="gone" />
+
         <com.ichi2.anki.ui.windows.reviewer.AnswerButton
             android:id="@+id/hard_button"
             style="@style/AnswerButton"

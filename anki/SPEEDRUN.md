@@ -94,5 +94,10 @@ The following are tracked deliverables (see the spec in
       yet), and readiness (abstains below the coverage/review give-up line).
 - [x] The phone companion sharing the engine, with two-way sync (self-hosted
       `anki-sync-server`; see [../SYNC.md](../SYNC.md)).
-- [ ] Held-out evaluation (memory calibration / Brier or log loss), the leakage check,
-      and the study-feature ablation test - the Sunday "prove it" deliverables.
+- [x] Held-out evaluation with real numbers - memory calibration (FSRS log_loss / RMSE on
+      held-back reviews), the paraphrase gap, leakage, the AI classifier + AI card check, a
+      50k-card speed/memory benchmark, and the crash/offline + prompt-injection tests. See
+      [docs/eval-results.md](./docs/eval-results.md); reproduce with `just bench`, `just eval`,
+      `just crash-test`.
+- [ ] The study-feature ablation as a full three-version A/B with real learners (the toggles
+      and engine gates exist and are tested; the comparative run needs learners/time).

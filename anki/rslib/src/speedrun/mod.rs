@@ -9,11 +9,13 @@
 //! AnkiDroid render an identical dashboard. See `dashboard.rs` for the entry
 //! point (`Collection::speedrun_dashboard`) and the honesty rules it upholds.
 
+pub(crate) mod ai;
 mod cardtype;
 mod coverage;
 mod dashboard;
 mod disconfirmer;
 mod fading;
+mod guidance;
 mod outline;
 mod performance;
 mod planning;

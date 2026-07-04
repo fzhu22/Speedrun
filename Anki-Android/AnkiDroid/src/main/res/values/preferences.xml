@@ -9,6 +9,13 @@
     <string name="error_reporting_mode_key">reportErrorMode</string>
     <!-- Reviewing -->
     <string name="pref_reviewing_screen_key">reviewingScreen</string>
+    <string name="pref_speedrun_screen_key">speedrunScreen</string>
+    <string name="speedrun_pref_disconfirmer_key">speedrunPrefDisconfirmer</string>
+    <string name="speedrun_pref_fading_key">speedrunPrefFading</string>
+    <string name="speedrun_pref_grading_split_key">speedrunPrefGradingSplit</string>
+    <string name="speedrun_pref_authoring_guide_key">speedrunPrefAuthoringGuide</string>
+    <string name="speedrun_pref_ai_key">speedrunPrefAi</string>
+    <string name="speedrun_pref_fit_performance_key">speedrunPrefFitPerformance</string>
     <string name="day_offset_preference">dayOffset</string>
     <string name="learn_cutoff_preference">learnCutoff</string>
     <string name="time_limit_preference">timeLimit</string>

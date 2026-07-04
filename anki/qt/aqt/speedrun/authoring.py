@@ -37,7 +37,7 @@ class DisconfirmerDialog(QDialog):
         self.mw = mw
         self.col = mw.col
         self._assisted = False
-        self.setWindowTitle("Add a card")
+        self.setWindowTitle("Add disconfirmer")
         disable_help_button(self)
         restoreGeom(self, "speedrunAuthoringV2", default_size=(560, 470))
         self._build_ui()
@@ -48,6 +48,14 @@ class DisconfirmerDialog(QDialog):
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
+
+        # Plain-English explainer for the term (shown on first use, per UX review).
+        explainer = QLabel(
+            "A disconfirmer is the one fact that, if true, would flip this card's answer."
+        )
+        explainer.setWordWrap(True)
+        explainer.setStyleSheet("QLabel { font-style: italic; opacity: .8; }")
+        layout.addWidget(explainer)
 
         # Deck + concept family
         top = QFormLayout()

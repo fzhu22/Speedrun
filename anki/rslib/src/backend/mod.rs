@@ -14,6 +14,7 @@ mod github;
 mod i18n;
 mod import_export;
 mod ops;
+mod speedrun_ai;
 mod sync;
 
 use std::ops::Deref;

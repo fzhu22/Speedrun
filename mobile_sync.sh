@@ -18,6 +18,13 @@ cp "$SRC/rslib/src/lib.rs" "$DST/rslib/src/lib.rs"
 cp "$SRC/rslib/proto/src/lib.rs" "$DST/rslib/proto/src/lib.rs"
 cp "$SRC/rslib/proto/python.rs" "$DST/rslib/proto/python.rs"
 
+echo "=== copy the Speedrun AI backend lane (HTTP RPCs on Backend) ==="
+cp "$SRC/rslib/src/backend/speedrun_ai.rs" "$DST/rslib/src/backend/speedrun_ai.rs"
+grep -q "mod speedrun_ai;" "$DST/rslib/src/backend/mod.rs" \
+  || sed -i 's/^mod sync;/mod speedrun_ai;\nmod sync;/' "$DST/rslib/src/backend/mod.rs"
+grep -q "mod speedrun_ai;" "$DST/rslib/src/backend/mod.rs" \
+  && echo "backend speedrun_ai wired OK"
+
 echo "=== force reconfigure (stale build.ninja predates speedrun.proto) ==="
 rm -f "$DST/out/build.ninja"
 

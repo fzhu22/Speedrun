@@ -121,8 +121,8 @@ class MissDisconfirmerPrompt(QDialog):
         layout = QVBoxLayout(self)
         if struggling:
             intro_text = (
-                "You keep missing this one - re-reading isn't sticking. Study the card "
-                "below, then name the one fact that would flip the answer."
+                "This one keeps coming back. Study the card below, then name the one fact "
+                "that would flip the answer."
             )
         else:
             intro_text = (

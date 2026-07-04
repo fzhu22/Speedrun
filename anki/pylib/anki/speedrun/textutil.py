@@ -84,3 +84,62 @@ def cosine(a: Dict[str, float], b: Dict[str, float]) -> float:
     na = sum(v * v for v in a.values()) ** 0.5
     nb = sum(v * v for v in b.values()) ** 0.5
     return dot / (na * nb) if na and nb else 0.0
+
+
+# -- prompt-injection defense (spec 10: a source file with hidden text) ---------------
+# Untrusted text (a pasted "source" for card generation, a draft card) can carry hidden
+# instructions - inside HTML tags/comments, zero-width characters, or plain "ignore the
+# above" lines - that try to hijack the model. We defang it before it ever reaches a
+# prompt: strip markup/hidden characters and neutralise known override phrases. Callers
+# additionally frame it as untrusted DATA in the system prompt.
+
+_ZERO_WIDTH = {ord(c): None for c in "\u200b\u200c\u200d\u2060\ufeff\u00ad"}
+_HTML_BLOCK = re.compile(r"(?is)<(script|style)\b[^>]*>.*?</\1>")
+_HTML_COMMENT = re.compile(r"(?s)<!--.*?-->")
+_HTML_TAG = re.compile(r"(?s)<[^>]+>")
+_INJECTION_PATTERNS = [
+    ("ignore-previous", re.compile(
+        r"(?is)ignore\s+(all\s+|any\s+|the\s+)?(previous|prior|above|earlier)\s+"
+        r"(instructions?|prompts?|messages?|text)")),
+    ("disregard", re.compile(
+        r"(?is)disregard\s+(the\s+|all\s+)?(above|previous|prior|earlier|instructions?)")),
+    ("role-override", re.compile(r"(?is)you\s+are\s+now\b|act\s+as\s+|pretend\s+to\s+be")),
+    ("system-prompt", re.compile(
+        r"(?is)system\s*prompt|reveal\s+(the\s+)?(system|hidden)\s+prompt")),
+    ("role-tag", re.compile(r"(?im)^\s*(assistant|system|developer)\s*:")),
+    ("new-instructions", re.compile(
+        r"(?is)new\s+instructions?\s*:|instead\s*,?\s*(do|output|write|print|return)\b")),
+    ("jailbreak", re.compile(r"(?is)override\s+your|jailbreak|do\s+anything\s+now|\bDAN\b")),
+]
+
+
+def _defang(text: str) -> str:
+    t = _HTML_BLOCK.sub(" ", text)
+    t = _HTML_COMMENT.sub(" ", t)
+    t = _HTML_TAG.sub(" ", t)
+    t = t.translate(_ZERO_WIDTH)
+    return "".join(ch for ch in t if ch in "\n\t" or ord(ch) >= 32)
+
+
+def find_injection_markers(text: str) -> List[str]:
+    """Names of prompt-injection patterns present in ``text`` (after de-fanging markup and
+    hidden characters). Empty list == looks clean. Used by tests and reporting."""
+    if not text:
+        return []
+    defanged = _defang(str(text))
+    return [name for name, pat in _INJECTION_PATTERNS if pat.search(defanged)]
+
+
+def sanitize_source(text: str, *, max_len: int = 8000) -> str:
+    """Return ``text`` safe to embed as untrusted DATA in a prompt: markup and hidden
+    characters stripped, known override phrases neutralised, length capped."""
+    if not text:
+        return ""
+    t = _defang(str(text))
+    for _name, pat in _INJECTION_PATTERNS:
+        t = pat.sub(" [removed] ", t)
+    t = re.sub(r"[ \t]{3,}", " ", t)
+    t = re.sub(r"\n{3,}", "\n\n", t)
+    if len(t) > max_len:
+        t = t[:max_len]
+    return t.strip()

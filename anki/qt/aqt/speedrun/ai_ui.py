@@ -34,8 +34,8 @@ def show_ai_settings(mw: aqt.main.AnkiQt) -> None:
     status = "on" if ai.ai_available(mw.col) else "off"
     form.addRow(
         QLabel(
-            "AI runs through our server - no API key to set here.\n"
-            f"Currently {status}."
+            "AI is optional; the key/proxy is configured outside the app (an environment\n"
+            f"variable or a local config file - see docs/aiproxy). Currently {status}."
         )
     )
 
@@ -142,8 +142,8 @@ def generate_perf_items(mw: aqt.main.AnkiQt) -> None:
     client = ai.resolve_client(col)
     if client is None:
         showInfo(
-            "AI is off (no API key). Item generation is disabled; the app still runs. "
-            "Set a key in Tools > Speedrun AI Settings to enable it.",
+            "AI is off. Item generation is disabled; the app still runs with AI off. "
+            "Enable it in Tools > Speedrun > AI settings (an AI key or proxy must be configured).",
             parent=mw,
             title="Speedrun: Generate items",
         )

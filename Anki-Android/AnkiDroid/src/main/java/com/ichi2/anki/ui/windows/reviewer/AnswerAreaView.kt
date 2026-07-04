@@ -71,4 +71,9 @@ class AnswerAreaView : FrameLayout {
         binding.hardButton.visibility = GONE
         binding.easyButton.visibility = GONE
     }
+
+    /** Speedrun SPOV 1: show/hide the divider that sets Again apart from Hard/Good/Easy. */
+    fun setGradingSplit(enabled: Boolean) {
+        binding.speedrunGradeDivider.visibility = if (enabled) VISIBLE else GONE
+    }
 }

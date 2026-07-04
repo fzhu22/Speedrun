@@ -38,6 +38,28 @@ def setup_speedrun_menu(mw: aqt.main.AnkiQt) -> None:
     mw.form.menuTools.addAction(action)
 
 
+def _on_top_toolbar_links(links: list, toolbar) -> None:
+    """Add a "Speedrun" link to the top toolbar - same target as Tools > Speedrun.
+
+    Inserted just before Sync (kept as the rightmost item). The toolbar centers the whole
+    link group, so the extra link stays centered and the short labels fit comfortably.
+    """
+    mw = aqt.mw
+    if mw is None:
+        return
+    try:
+        link = toolbar.create_link(
+            "speedrun",
+            "Speedrun",
+            lambda: aqt.dialogs.open("SpeedrunHub", mw),
+            tip="Speedrun tools: dashboard, disconfirmer, AI",
+            id="speedrun",
+        )
+        links.insert(max(len(links) - 1, 0), link)
+    except Exception as exc:  # never break the toolbar
+        print("speedrun: toolbar link failed:", exc)
+
+
 def _init_once() -> None:
     global _initialized
     if _initialized:
@@ -49,6 +71,7 @@ def _init_once() -> None:
     aqt.dialogs.register_dialog("SpeedrunHub", SpeedrunHub)
     gui_hooks.profile_did_open.append(_ensure_notetype)
     gui_hooks.reviewer_did_answer_card.append(_on_answer_card)
+    gui_hooks.top_toolbar_did_init_links.append(_on_top_toolbar_links)
 
     # Card-type classification runs in the study loop (background, on deck open) so the
     # in-review disconfirmer gating/hints just work - no manual Tools step. Falls back to
@@ -211,8 +234,15 @@ def _refresh_speedrun_templates(col) -> None:
     overwrites them): the lenient pretest type-in and the multiple-choice reveal fix. Runs
     once per change (a schema edit), then no-ops.
     """
-    from anki.speedrun import pretest
+    from anki.speedrun import disconfirmer, pretest
 
+    _refresh_one(
+        col,
+        disconfirmer.NOTETYPE_NAME,
+        disconfirmer._FRONT,
+        disconfirmer._BACK,
+        disconfirmer._CSS,
+    )
     _refresh_one(col, pretest.NOTETYPE_NAME, pretest._FRONT, pretest._BACK, pretest._CSS)
     _refresh_one(col, _PERF_NOTETYPE, _PERF_FRONT, _PERF_BACK, _PERF_CSS)
 

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Speedrun study features. All values live in the synced collection config (persistent
+     is false), read/written by SpeedrunSettingsFragment, so desktop and mobile share them. -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:key="@string/pref_speedrun_screen_key"
+    android:title="@string/speedrun"
+    android:summary="@string/speedrun_settings_summary">
+
+    <SwitchPreferenceCompat
+        android:key="@string/speedrun_pref_disconfirmer_key"
+        android:title="@string/speedrun_pref_disconfirmer"
+        app:persistent="false" />
+
+    <SwitchPreferenceCompat
+        android:key="@string/speedrun_pref_fading_key"
+        android:title="@string/speedrun_pref_fading"
+        app:persistent="false" />
+
+    <SwitchPreferenceCompat
+        android:key="@string/speedrun_pref_grading_split_key"
+        android:title="@string/speedrun_pref_grading_split"
+        app:persistent="false" />
+
+    <SwitchPreferenceCompat
+        android:key="@string/speedrun_pref_authoring_guide_key"
+        android:title="@string/speedrun_pref_authoring_guide"
+        app:persistent="false" />
+
+    <SwitchPreferenceCompat
+        android:key="@string/speedrun_pref_ai_key"
+        android:title="@string/speedrun_pref_ai"
+        app:persistent="false" />
+
+    <Preference
+        android:key="@string/speedrun_pref_fit_performance_key"
+        android:title="@string/speedrun_pref_fit_performance"
+        android:summary="@string/speedrun_pref_fit_performance_summary"
+        app:persistent="false" />
+</PreferenceScreen>

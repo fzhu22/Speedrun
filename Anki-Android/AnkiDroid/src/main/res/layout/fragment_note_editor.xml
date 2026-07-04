@@ -76,6 +76,42 @@
                     />
             </LinearLayout>
 
+            <!-- Speedrun: question-writing guidance + AI hint (Add mode only; toggled by
+                 speedrun_authoring_guide_enabled). Populated in NoteEditor.initSpeedrunGuidance(). -->
+            <LinearLayout
+                android:id="@+id/speedrun_guidance_panel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_margin="8dp"
+                android:padding="12dp"
+                android:background="@drawable/speedrun_disconfirmer_card_bg"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/speedrun_guidance_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:lineSpacingExtra="2dp"
+                    android:textAppearance="?attr/textAppearanceBodySmall" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/speedrun_ai_hint_button"
+                    style="?attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/speedrun_disconfirmer_get_hint" />
+
+                <TextView
+                    android:id="@+id/speedrun_ai_hint_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textStyle="italic"
+                    android:visibility="gone"
+                    android:textAppearance="?attr/textAppearanceBodySmall" />
+            </LinearLayout>
+
             <!-- Front/Back/Attach views added in NoteEditor.populateEditFields(..) -->
             <LinearLayout
                 android:id="@+id/CardEditorEditFieldsLayout"

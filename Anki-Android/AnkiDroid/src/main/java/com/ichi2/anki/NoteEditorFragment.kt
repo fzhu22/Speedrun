@@ -68,6 +68,7 @@ import anki.notes.NoteFieldsCheckResponse
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.button.MaterialButton
 import com.ichi2.anki.CollectionManager.TR
 import com.ichi2.anki.CollectionManager.withCol
 import com.ichi2.anki.NoteEditorFragment.Companion.NoteEditorCaller.Companion.fromValue
@@ -606,6 +607,63 @@ class NoteEditorFragment :
     }
 
     // Finish initializing the fragment after the collection has been correctly loaded
+    /**
+     * Speedrun: question-writing guidance + AI hint in the Add-card flow (Add mode only), the
+     * mobile counterpart of the desktop Add-dialog panel. All logic lives in the shared engine:
+     * [Collection.backend] `speedrunAuthoringGuidance` gives deterministic tips for the inferred
+     * topic, and the "AI hint" button calls `speedrunTopicIdeas` (empty card) or `speedrunCardAdvice`
+     * (draft), each degrading to a template when AI is off. Gated by `speedrun_authoring_guide_enabled`.
+     */
+    private fun initSpeedrunGuidance(deckId: Long) {
+        val panel = view?.findViewById<View>(R.id.speedrun_guidance_panel) ?: return
+        val guidanceText = view?.findViewById<TextView>(R.id.speedrun_guidance_text) ?: return
+        val hintButton = view?.findViewById<MaterialButton>(R.id.speedrun_ai_hint_button) ?: return
+        val hintText = view?.findViewById<TextView>(R.id.speedrun_ai_hint_text) ?: return
+
+        launchCatchingTask {
+            val enabled = withCol { config.get<Boolean>("speedrun_authoring_guide_enabled") ?: true }
+            if (!enabled) {
+                panel.visibility = View.GONE
+                return@launchCatchingTask
+            }
+            val tags = selectedTags ?: emptyList()
+            val guidance =
+                try {
+                    withCol { backend.speedrunAuthoringGuidance(code = "", tags = tags, deckName = decks.name(deckId)) }
+                } catch (e: Exception) {
+                    Timber.w(e, "speedrun: authoringGuidance failed")
+                    null
+                } ?: return@launchCatchingTask
+            guidanceText.text = guidance.linesList.joinToString("\n")
+            panel.visibility = View.VISIBLE
+        }
+
+        hintButton.setOnClickListener {
+            launchCatchingTask {
+                val front = currentFieldStrings.getOrNull(0) ?: ""
+                val back = currentFieldStrings.getOrNull(1) ?: ""
+                val resp =
+                    try {
+                        withCol {
+                            if (front.isBlank() && back.isBlank()) {
+                                backend.speedrunTopicIdeas(topic = "")
+                            } else {
+                                backend.speedrunCardAdvice(question = front, answer = back, topic = "")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Timber.w(e, "speedrun: card advice failed")
+                        null
+                    } ?: return@launchCatchingTask
+                if (resp.text.isNotEmpty()) {
+                    val label = if (resp.source.startsWith("AI")) "AI hint" else "Hint"
+                    hintText.text = "$label: ${resp.text}"
+                    hintText.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
     private fun setupEditor(col: Collection) {
         val intent = requireActivity().intent
         Timber.d("NoteEditor() onCollectionLoaded: caller: %s", caller)
@@ -762,6 +820,9 @@ class NoteEditorFragment :
             setOnClickListener {
                 startDeckSelection(allowAll = false, allowFiltered = false, requestKey = REQUEST_DECK_SELECTION_NOTE_EDITOR)
             }
+        }
+        if (addNote) {
+            initSpeedrunGuidance(deckId)
         }
         val getTextFromSearchView = requireArguments().getString(EXTRA_TEXT_FROM_SEARCH_VIEW)
         setDid(editorNote)

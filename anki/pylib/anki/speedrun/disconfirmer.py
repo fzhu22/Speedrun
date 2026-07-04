@@ -55,24 +55,37 @@ _BACK = """\
 <div class="sr-card">
   <div class="sr-a"><span class="lbl">Answer</span>{{Answer}}</div>
   {{#Disconfirmer}}<div class="sr-disc"><span class="lbl">Disconfirmer - what flips it</span>{{Disconfirmer}}</div>{{/Disconfirmer}}
-  {{#Principle}}<div class="sr-row"><span class="lbl">Principle</span>{{Principle}}</div>{{/Principle}}
-  {{#Trap}}<div class="sr-row"><span class="lbl">Trap</span>{{Trap}}</div>{{/Trap}}
-  {{#BoundaryCase}}<div class="sr-row"><span class="lbl">Boundary case</span>{{BoundaryCase}}</div>{{/BoundaryCase}}
-  {{#OriginalCoverStory}}<div class="sr-perturb"><span class="lbl">Surface perturbation</span>{{OriginalCoverStory}} &rarr; {{SwappedCoverStory}}</div>{{/OriginalCoverStory}}
-  {{#Provenance}}<div class="sr-prov">Source: {{Provenance}}</div>{{/Provenance}}
+  <details class="sr-more">
+    <summary>More detail</summary>
+    {{#Principle}}<div class="sr-row"><span class="lbl">Principle</span>{{Principle}}</div>{{/Principle}}
+    {{#Trap}}<div class="sr-row"><span class="lbl">Trap</span>{{Trap}}</div>{{/Trap}}
+    {{#BoundaryCase}}<div class="sr-row"><span class="lbl">Boundary case</span>{{BoundaryCase}}</div>{{/BoundaryCase}}
+    {{#OriginalCoverStory}}<div class="sr-perturb"><span class="lbl">Reworded from</span>{{OriginalCoverStory}} &rarr; {{SwappedCoverStory}}</div>{{/OriginalCoverStory}}
+    {{#Provenance}}<div class="sr-prov">Source: {{Provenance}}</div>{{/Provenance}}
+  </details>
 </div>
+<script>
+(function () {
+  // Hide the "More detail" toggle when none of the secondary fields are filled.
+  var d = document.querySelector(".sr-more");
+  if (d && !d.querySelector(".sr-row, .sr-perturb, .sr-prov")) d.style.display = "none";
+})();
+</script>
 """
 
 _CSS = """\
 .card { font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial; color: inherit; }
-.sr-card { max-width: 640px; margin: 0 auto; text-align: left; }
-.sr-q { font-size: 20px; font-weight: 600; margin-bottom: 14px; }
-.sr-prompt { font-style: italic; opacity: .75; }
-.sr-a { font-size: 18px; margin: 8px 0; }
-.sr-disc { background: rgba(255,180,84,.15); border-left: 3px solid #ffb454; padding: 8px 10px; border-radius: 6px; margin: 10px 0; }
-.sr-row { margin: 6px 0; }
-.sr-perturb { margin: 8px 0; opacity: .85; }
-.sr-prov { opacity: .6; font-size: 12px; margin-top: 10px; }
+.sr-card { max-width: 620px; margin: 0 auto; text-align: left; }
+.sr-q { font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+.sr-prompt { font-style: italic; opacity: .75; font-size: .9em; }
+.sr-a { font-size: 16px; margin: 6px 0; }
+.sr-disc { background: rgba(255,180,84,.15); border-left: 3px solid #ffb454; padding: 7px 10px; border-radius: 6px; margin: 8px 0; }
+.sr-row { margin: 5px 0; }
+.sr-perturb { margin: 6px 0; opacity: .85; }
+.sr-prov { opacity: .6; font-size: 12px; margin-top: 8px; }
+.sr-more { margin-top: 8px; }
+.sr-more > summary { cursor: pointer; font-size: 12px; opacity: .7; }
+.sr-more[open] > summary { margin-bottom: 6px; }
 .lbl { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; opacity: .6; }
 """
 
