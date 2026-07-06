@@ -1,0 +1,51 @@
+{
+  "name": "score-mapping",
+  "generated_at": "2026-07-05T21:19:15+00:00",
+  "git_commit": "c054d5d",
+  "title": "Readiness score mapping (performance -> MCAT 472-528)",
+  "spec": "spec section 9 Step 3",
+  "command": "just eval  (score_mapping.py); method in docs/score-mapping.md",
+  "model": "offline-stub",
+  "summary": [
+    "Method (documented in docs/score-mapping.md): each covered section's held-out accuracy -> its MCAT band [118,132]; the four sections sum to [472,528]; uncovered sections (e.g. CARS) are imputed at the covered mean; the range is the summed section Wilson bounds.",
+    "Inputs from performance.json (simulated responses; 95% Wilson bounds from n).",
+    "Projected MCAT **505** (likely **493-515**), from 3/4 covered sections (1 imputed)."
+  ],
+  "metrics": {
+    "sections": [
+      {
+        "name": "BioBiochem",
+        "accuracy": 0.5833333333333334,
+        "n": 24,
+        "low": 0.3883433764938864,
+        "high": 0.7553265275346177
+      },
+      {
+        "name": "ChemPhys",
+        "accuracy": 0.7,
+        "n": 20,
+        "low": 0.4810232237710206,
+        "high": 0.854524726031006
+      },
+      {
+        "name": "PsychSoc",
+        "accuracy": 0.5,
+        "n": 16,
+        "low": 0.27999237611350836,
+        "high": 0.7200076238864916
+      }
+    ],
+    "projection": {
+      "score": 505,
+      "low": 493,
+      "high": 515,
+      "covered": 3,
+      "imputed_sections": 1
+    }
+  },
+  "verdict": "505 (493-515)",
+  "nulls": [
+    "This projection is an UNVALIDATED display-layer index: it is not anchored to real MCAT scores (section 9 Step 4 needs longitudinal student data).",
+    "The uncovered-section imputation (CARS at the covered mean) is a stated assumption, not a measurement."
+  ]
+}

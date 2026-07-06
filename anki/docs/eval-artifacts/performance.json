@@ -1,0 +1,95 @@
+{
+  "name": "performance",
+  "generated_at": "2026-07-05T21:19:15+00:00",
+  "git_commit": "c054d5d",
+  "title": "Performance model on held-out exam-style items",
+  "spec": "spec 7d / 7e / section 9 Step 2",
+  "command": "just eval  (eval_performance.py)",
+  "model": "logistic P(correct); responses SIMULATED (labelled)",
+  "seed": 7,
+  "summary": [
+    "Held-out accuracy on 60 reworded items: **60.0%** (Brier 0.206; lower = better calibrated).",
+    "Paraphrase test (7d): mean card recall 64.3% vs reworded accuracy 60.0% -> gap **+4.3%** (recall and performance are not identical, so performance is not a copy of memory).",
+    "Incremental-validity gate (SPOV 3): out-of-sample AUC full model 0.606 vs recall-only 0.534, delta **+0.073** (need >= 0.02), n=60 -> PASS.",
+    "Leakage (7e): 176 studied texts vs 60 held-out items, max shingle overlap 0.40 (threshold 0.8) -> CLEAN (real texts)."
+  ],
+  "table": {
+    "headers": [
+      "Metric",
+      "Value",
+      "Bar / need"
+    ],
+    "rows": [
+      [
+        "held-out accuracy",
+        "60.0%",
+        ""
+      ],
+      [
+        "Brier",
+        "0.206",
+        "lower better"
+      ],
+      [
+        "AUC full vs recall",
+        "0.606 vs 0.534",
+        "delta +0.073"
+      ],
+      [
+        "incremental-validity gate",
+        "PASS",
+        ">= 0.02, n>=30"
+      ],
+      [
+        "leakage",
+        "CLEAN",
+        "overlap 0.40"
+      ]
+    ]
+  },
+  "metrics": {
+    "accuracy": 0.6,
+    "brier": 0.20605440222056154,
+    "gate": {
+      "n": 60,
+      "auc_full": 0.6064814814814815,
+      "auc_recall": 0.5335648148148148,
+      "delta": 0.07291666666666674,
+      "passes": true,
+      "min_responses": 30,
+      "min_delta": 0.02
+    },
+    "paraphrase_gap": 0.04297877405719086,
+    "leakage_clean": true,
+    "leakage_max_overlap": 0.4,
+    "n_responses": 60,
+    "per_section_accuracy": {
+      "BioBiochem": 0.5833333333333334,
+      "ChemPhys": 0.7,
+      "PsychSoc": 0.5
+    },
+    "per_section": {
+      "BioBiochem": {
+        "accuracy": 0.5833333333333334,
+        "correct": 14,
+        "n": 24
+      },
+      "ChemPhys": {
+        "accuracy": 0.7,
+        "correct": 14,
+        "n": 20
+      },
+      "PsychSoc": {
+        "accuracy": 0.5,
+        "correct": 8,
+        "n": 16
+      }
+    }
+  },
+  "chart": "performance.svg",
+  "verdict": "PASS - Performance may ship",
+  "nulls": [
+    "The accuracy/Brier here are on SIMULATED responses (planted latent skill) to exercise the pipeline; they are NOT measured on real student answers. On a fresh real deck the engine's Performance score abstains until >= 5 graded items per section exist.",
+    "The memory->performance gap is small (+4.3%): recall only modestly overstates performance on this synthetic set, so the case that performance is a distinct construct is suggestive here, not decisive."
+  ]
+}

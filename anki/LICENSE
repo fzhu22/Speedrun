@@ -1,3 +1,16 @@
+Speedrun modifications
+======================
+
+Speedrun is a fork of Anki (by Ankitects Pty Ltd) and, for the phone companion, of
+AnkiDroid (by the AnkiDroid Open Source Team). All Speedrun modifications and additions
+in this repository are Copyright (C) 2026 Franklin Zhu and are licensed under the GNU
+Affero General Public License, version 3 or later (AGPL-3.0-or-later), the same license
+as the upstream projects they build on. The full license text is in the repository-root
+LICENSE file. Full credit to Damien Elmes, the Anki contributors, and the AnkiDroid
+contributors. The upstream Anki license notice follows.
+
+--------------------------------------------------------------------------------
+
 Anki is licensed under the GNU Affero General Public License, version 3 or
 later, with portions contributed by Anki users licensed under the BSD-3
 license (see CONTRIBUTORS).

@@ -21,6 +21,10 @@ pub(crate) struct SectionCoverage {
     pub abbrev: &'static str,
     pub title: &'static str,
     pub fraction: f32,
+    /// One `(code, title, covered)` per content-category leaf in this section, in
+    /// outline order, so the UI can show exactly which topics are covered vs missing
+    /// (spec 7c: mark every outline topic covered / not, not just a section percent).
+    pub topics: Vec<(&'static str, &'static str, bool)>,
 }
 
 /// Overall + per-section coverage of the outline's content categories.
@@ -45,17 +49,19 @@ pub(crate) fn compute_coverage(cards_by_cc: &HashMap<String, u32>) -> Coverage {
             continue;
         }
         let total = section.categories.len() as u32;
-        let covered = section
+        let topics: Vec<(&'static str, &'static str, bool)> = section
             .categories
             .iter()
-            .filter(|c| is_covered(c.code))
-            .count() as u32;
+            .map(|c| (c.code, c.title, is_covered(c.code)))
+            .collect();
+        let covered = topics.iter().filter(|(_, _, cov)| *cov).count() as u32;
         covered_leaves += covered;
         per_section.push(SectionCoverage {
             section_id: section.id,
             abbrev: section.abbrev,
             title: section.title,
             fraction: covered as f32 / total as f32,
+            topics,
         });
     }
 

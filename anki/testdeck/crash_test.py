@@ -36,7 +36,10 @@ HERE = Path(__file__).resolve().parent
 ANKI_ROOT = HERE.parent
 os.chdir(ANKI_ROOT)
 sys.path[:0] = ["pylib", "qt", "out/pylib", "out/qt"]
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
 
+import _artifacts  # noqa: E402
 from anki.collection import Collection  # noqa: E402
 
 # Child: open the collection and hammer the review loop (continuous writes) until killed.
@@ -186,6 +189,40 @@ def main() -> None:
     print("\n=== Summary ===")
     print(f"  crash test : {ok}/{total} intact  -> {'PASS' if ok == total else 'FAIL'}")
     print(f"  offline    : {'PASS' if offline_ok else 'FAIL'}")
+
+    _artifacts.write_artifact(
+        "crash-test",
+        {
+            "title": "Crash + offline resilience",
+            "spec": "spec 7g / section 10 reliability",
+            "command": "just crash-test  (crash_test.py)",
+            "model": _artifacts.OFFLINE_MODEL,
+            "summary": [
+                f"Crash: {total} hard kills (TerminateProcess) mid-review, each reopened + "
+                f"integrity-checked -> **{ok}/{total} collections intact** "
+                f"({'PASS' if ok == total else 'FAIL'}). SQLite journalling recovers cleanly.",
+                f"Offline / AI-off: no fabrication (generate=[]), deterministic template "
+                f"fallbacks with provenance, broken/garbage AI output handled safely, and the "
+                f"dashboard still returns a score -> {'ALL OK' if offline_ok else 'FAIL'}.",
+            ],
+            "table": {
+                "headers": ["Check", "Result"],
+                "rows": [
+                    ["crash (20x kill, reopen + integrity)", f"{ok}/{total} intact"],
+                    ["offline / AI-off", "PASS" if offline_ok else "FAIL"],
+                ],
+            },
+            "metrics": {
+                "crash_intact": ok,
+                "crash_total": total,
+                "crash_pass": ok == total,
+                "offline_pass": offline_ok,
+            },
+            "verdict": ("PASS" if (ok == total and offline_ok) else "FAIL"),
+            "nulls": [],
+        },
+    )
+    print("wrote artifact: docs/eval-artifacts/crash-test.json")
     print("\nMobile note: on Android the equivalent is an adb kill loop -")
     print("  for i in $(seq 20); do adb shell am start -n com.ichi2.anki/.IntentHandler;")
     print("  sleep 3; adb shell am force-stop com.ichi2.anki; done")

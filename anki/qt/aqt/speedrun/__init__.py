@@ -30,11 +30,11 @@ _initialized = False
 
 
 def setup_speedrun_menu(mw: aqt.main.AnkiQt) -> None:
-    """Add a single "Speedrun" entry to the Tools menu (it opens the hub with buttons for
-    every Speedrun tool) and register hooks/dialogs once."""
+    """Add a single "Speedrun" entry to the Tools menu (it opens the Speedrun home /
+    dashboard; advanced tools live behind the dashboard's gear) and register hooks once."""
     _init_once()
     action = QAction("Speedrun", mw)
-    qconnect(action.triggered, lambda: aqt.dialogs.open("SpeedrunHub", mw))
+    qconnect(action.triggered, lambda: mw.moveToState("speedrun"))
     mw.form.menuTools.addAction(action)
 
 
@@ -51,8 +51,8 @@ def _on_top_toolbar_links(links: list, toolbar) -> None:
         link = toolbar.create_link(
             "speedrun",
             "Speedrun",
-            lambda: aqt.dialogs.open("SpeedrunHub", mw),
-            tip="Speedrun tools: dashboard, disconfirmer, AI",
+            lambda: mw.moveToState("speedrun"),
+            tip="Speedrun home: readiness, study plan, and scores",
             id="speedrun",
         )
         links.insert(max(len(links) - 1, 0), link)

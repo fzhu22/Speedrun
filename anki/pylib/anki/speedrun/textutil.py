@@ -110,6 +110,22 @@ _INJECTION_PATTERNS = [
     ("new-instructions", re.compile(
         r"(?is)new\s+instructions?\s*:|instead\s*,?\s*(do|output|write|print|return)\b")),
     ("jailbreak", re.compile(r"(?is)override\s+your|jailbreak|do\s+anything\s+now|\bDAN\b")),
+    # Exfiltration: an imperative to emit/append a payload back to the caller ("append X to
+    # your response", "output ... in your answer"). Generic - removes whatever payload the
+    # instruction carries, not a specific token.
+    ("exfiltrate", re.compile(
+        r"(?is)\b(append|add|output|print|include|emit|repeat|write|say|return|send)\b"
+        r"[^\n.]{0,60}?\bto\s+(your\s+|the\s+)?"
+        r"(response|reply|answer|output|message|user|screen)\b")),
+    # A sequenced imperative to emit/reveal something ("then output ...", "also print ...").
+    # Requires an explicit sequencing adverb so it does not fire on ordinary prose like
+    # "the output of glycolysis".
+    ("imperative-emit", re.compile(
+        r"(?is)\b(then|also|now|next|finally|first|afterwards?)\b\s*,?\s*"
+        r"(output|print|emit|reveal|expose|leak|repeat|append|say)\b[^\n.]{0,80}")),
+    # Answer-forcing: a poisoned passage that tries to fix the "correct" choice.
+    ("answer-forcing", re.compile(
+        r"(?is)correct\s+answer\s+is\s+always|always\s+(pick|choose|select|answer|mark|say)\b")),
 ]
 
 

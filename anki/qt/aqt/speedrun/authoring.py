@@ -186,9 +186,35 @@ class DisconfirmerDialog(QDialog):
 
     def _on_hint(self) -> None:
         client = ai.resolve_client(self.col)
-        hint, prov = ai.disconfirmer_hint(
-            client, self.swapped.toPlainText().strip(), self.answer.text().strip()
-        )
+        question = self.swapped.toPlainText().strip()
+        answer = self.answer.text().strip()
+        if client is None:
+            # AI off -> the deterministic template hint, immediately (no network call).
+            hint, prov = ai.disconfirmer_hint(None, question, answer)
+            self._show_hint(hint, prov)
+            return
+        # AI on -> generate in the BACKGROUND so a slow/unreachable model never freezes the
+        # dialog; disconfirmer_hint falls back to the template hint on any error/timeout.
+        self.hint_btn.setEnabled(False)
+        self.hint_label.setText("Getting a hint\u2026")
+
+        def task() -> tuple:
+            return ai.disconfirmer_hint(client, question, answer)
+
+        def on_done(fut) -> None:
+            try:
+                hint, prov = fut.result()
+            except Exception:
+                hint, prov = ai.disconfirmer_hint(None, question, answer)  # template fallback
+            try:
+                self.hint_btn.setEnabled(True)
+                self._show_hint(hint, prov)
+            except RuntimeError:
+                pass  # the dialog was closed while the hint was loading
+
+        self.mw.taskman.run_in_background(task, on_done, uses_collection=False)
+
+    def _show_hint(self, hint: str, prov) -> None:
         label = "AI hint" if prov.source.startswith("AI") else "Hint"
         self.hint_label.setText(f"{label}: {hint}")
         self._assisted = True

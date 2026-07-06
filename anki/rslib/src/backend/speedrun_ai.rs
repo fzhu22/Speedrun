@@ -22,9 +22,12 @@ impl crate::services::BackendSpeedrunService for Backend {
         if !cfg.enabled {
             return Ok(template(ai::CARD_ADVICE_TEMPLATE.to_string()));
         }
+        // Card fields are untrusted: defang injection before building the prompt.
         let user = format!(
             "Topic: {}\nFront: {}\nBack: {}\nAdvice:",
-            input.topic, input.question, input.answer
+            ai::sanitize_source(&input.topic, 200),
+            ai::sanitize_source(&input.question, 2000),
+            ai::sanitize_source(&input.answer, 2000),
         );
         Ok(self.speedrun_ai_call(&cfg.model, ai::CARD_ADVICE_SYSTEM, &user, ai::CARD_ADVICE_TEMPLATE))
     }
@@ -35,7 +38,10 @@ impl crate::services::BackendSpeedrunService for Backend {
         if !cfg.enabled {
             return Ok(template(fallback));
         }
-        let user = format!("Topic: {}\nConcepts to make cards about:", input.topic);
+        let user = format!(
+            "Topic: {}\nConcepts to make cards about:",
+            ai::sanitize_source(&input.topic, 200)
+        );
         Ok(self.speedrun_ai_call(&cfg.model, ai::TOPIC_IDEAS_SYSTEM, &user, &fallback))
     }
 
@@ -44,7 +50,11 @@ impl crate::services::BackendSpeedrunService for Backend {
         if !cfg.enabled {
             return Ok(template(ai::HINT_TEMPLATE.to_string()));
         }
-        let user = format!("Q: {}\nA: {}\nHint:", input.question, input.answer);
+        let user = format!(
+            "Q: {}\nA: {}\nHint:",
+            ai::sanitize_source(&input.question, 2000),
+            ai::sanitize_source(&input.answer, 2000),
+        );
         Ok(self.speedrun_ai_call(&cfg.model, ai::HINT_SYSTEM, &user, ai::HINT_TEMPLATE))
     }
 }

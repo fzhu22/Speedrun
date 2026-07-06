@@ -18,9 +18,7 @@ from aqt.utils import (
     disable_help_button,
     restoreGeom,
     saveGeom,
-    showInfo,
     showWarning,
-    tooltip,
 )
 
 DIALOG_NAME = "SpeedrunHub"
@@ -83,24 +81,26 @@ class SpeedrunHub(QDialog):
         layout.addWidget(buttons)
 
     def _entries(self):
-        """(label, tooltip, func(mw)) rows; ``None`` is a separator. Mirrors the actions
-        that used to be added directly to the Tools menu."""
+        """(label, tooltip, func(mw)) rows; ``None`` is a separator. Grouped by area:
+        scores & cards, then AI tools, then study settings, then dev-only tools."""
+        dev = bool(os.environ.get("ANKIDEV"))
+
+        # Scores & cards
         entries = [
             (
                 "Dashboard",
-                "Your memory, performance, and readiness scores",
-                lambda mw: aqt.dialogs.open("SpeedrunDashboard", mw),
-            ),
-            (
-                "Compute score evidence",
-                "Step 1 & 2: memory calibration on held-back reviews + performance-model validation",
-                _compute_evidence,
+                "Your memory, performance, and readiness scores (Speedrun home)",
+                lambda mw: mw.moveToState("speedrun"),
             ),
             (
                 "Add disconfirmer",
                 "Add a disconfirmer: the one fact that would flip a card's answer",
                 lambda mw: aqt.dialogs.open("SpeedrunAuthoring", mw),
             ),
+        ]
+
+        # AI tools (kept together)
+        entries += [
             None,
             ("AI settings...", "Set up the optional AI helper", _ai_settings),
             (
@@ -108,6 +108,18 @@ class SpeedrunHub(QDialog):
                 "Create practice items from your own notes",
                 _gen_items,
             ),
+        ]
+        if dev:
+            entries.append(
+                (
+                    "Classify card types (AI)",
+                    "Dev: classify declarative vs application cards",
+                    _classify,
+                )
+            )
+
+        # Study settings
+        entries += [
             None,
             (
                 "Study features...",
@@ -115,14 +127,11 @@ class SpeedrunHub(QDialog):
                 _feature_settings,
             ),
         ]
-        if os.environ.get("ANKIDEV"):
+
+        # Dev-only tools
+        if dev:
             entries += [
                 None,
-                (
-                    "Classify card types (AI)",
-                    "Dev: classify declarative vs application cards",
-                    _classify,
-                ),
                 (
                     "Dev portal",
                     "Dev: internal Speedrun state and knowledge graph",
@@ -174,43 +183,3 @@ def _classify(mw) -> None:
     from . import ai_ui
 
     ai_ui.classify_card_types(mw)
-
-
-def _compute_evidence(mw) -> None:
-    """Compute + cache the score-model evidence in the shared engine, then show it.
-
-    Runs the engine's ``speedrun_fit_performance`` (which validates the performance model
-    AND evaluates memory calibration on held-back reviews, caching both), then reads the
-    dashboard so the same numbers the UI shows are reported here (spec section 9 Steps 1-2).
-    """
-    col = mw.col
-    if col is None:
-        return
-    resp = col.speedrun_fit_performance()
-    mw.reset()  # refresh any open dashboard
-
-    lines = []
-    dash = col.speedrun_dashboard()
-    if dash.HasField("evidence") and dash.evidence.HasField("memory_rmse"):
-        ev = dash.evidence
-        lines += [
-            "Step 1 - Memory calibration (held-back reviews):",
-            f"  calibration error (RMSE): {ev.memory_rmse:.1%}",
-            f"  log-loss: {ev.memory_log_loss:.3f}    reviews: {ev.memory_reviews}",
-            "",
-        ]
-    else:
-        lines += ["Step 1 - Memory calibration: not enough review history yet.", ""]
-
-    lines += [
-        "Step 2 - Performance model (predict held-out exam questions):",
-        f"  out-of-sample AUC: {resp.auc_full:.3f} (full) vs {resp.auc_recall:.3f} (recall-only)",
-        f"  gain: {resp.delta:+.3f} (need >= {resp.min_delta:.2f}), responses: {resp.n} (need >= {resp.min_responses})",
-        (
-            "  VALIDATED - Performance now shows on the dashboard."
-            if resp.passed
-            else "  Not yet - it must beat recall out-of-sample."
-        ),
-    ]
-    showInfo("\n".join(lines), parent=mw, title="Speedrun: Score-model evidence")
-    tooltip("Score evidence updated.", parent=mw)

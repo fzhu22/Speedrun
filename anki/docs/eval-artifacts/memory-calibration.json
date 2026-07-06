@@ -1,0 +1,77 @@
+{
+  "name": "memory-calibration",
+  "generated_at": "2026-07-05T17:30:17+00:00",
+  "git_commit": "c054d5d",
+  "title": "Memory calibration on held-out reviews",
+  "spec": "spec section 9 Step 1 / PRD AC3",
+  "command": "just eval  (calibration.py --col testdeck/bench.anki2)",
+  "model": "FSRS (synthetic bench revlog, labelled)",
+  "seed": 7,
+  "summary": [
+    "Memory model = FSRS (the shared engine's scheduler). Fit on `calib::train`, evaluated on the untouched `calib::test` split (held out by card).",
+    "Held-out calibration error (RMSE across probability bins) = **5.4%**: when FSRS says p% recall, observed recall is within ~5.4% of p% on reviews it never trained on.",
+    "Small train->test gap (2.8% -> 5.4%, +2.6%) indicates it is calibrated, not overfit.",
+    "Brier score on 1154 held-out reviews = **0.087** (lower = better; a proper scoring rule).",
+    "Cross-check: the FSRS replay used for the chart gives rmse across bins 4.7%, tracking the engine's authoritative 5.4%."
+  ],
+  "table": {
+    "headers": [
+      "Split",
+      "log_loss",
+      "rmse_bins (calibration error)",
+      "reviews"
+    ],
+    "rows": [
+      [
+        "in-sample (train)",
+        "0.3157",
+        "0.0284",
+        5329
+      ],
+      [
+        "**held-out (test)**",
+        "0.3058",
+        "**0.0544**",
+        1294
+      ]
+    ]
+  },
+  "metrics": {
+    "in_sample": {
+      "log_loss": 0.31571006774902344,
+      "rmse_bins": 0.028412966057658195
+    },
+    "held_out": {
+      "log_loss": 0.30575597286224365,
+      "rmse_bins": 0.054368775337934494,
+      "verdict": "calibrated"
+    },
+    "brier": 0.0867893786530322,
+    "n_params": 21,
+    "reliability_bins": [
+      {
+        "predicted": 0.6829780150347825,
+        "observed": 1.0,
+        "n": 3
+      },
+      {
+        "predicted": 0.7687124917561664,
+        "observed": 0.8813559322033898,
+        "n": 59
+      },
+      {
+        "predicted": 0.8680739782117683,
+        "observed": 0.9153976311336718,
+        "n": 591
+      },
+      {
+        "predicted": 0.9178429439367007,
+        "observed": 0.9001996007984032,
+        "n": 501
+      }
+    ]
+  },
+  "chart": "memory-calibration.svg",
+  "verdict": "calibrated (held-out RMSE 5.4%, log_loss 0.306)",
+  "nulls": []
+}

@@ -37,6 +37,8 @@ sys.path[:0] = [str(ANKI_ROOT / "pylib"), str(ANKI_ROOT / "out" / "pylib")]
 
 from anki.speedrun import performance as perf  # noqa: E402
 
+import _artifacts  # noqa: E402
+
 SEED = 7
 MEMORY_CSVS = ["memory_bio_biochem.csv", "memory_chem_phys.csv", "memory_psych_soc.csv"]
 
@@ -143,6 +145,106 @@ def main() -> None:
     print()
     print("Note: responses are SIMULATED to exercise the pipeline; the gate verdict is only")
     print("meaningful on real review-log data. Leakage is computed on the actual texts.\n")
+
+    _write_performance_artifact(
+        concepts, responses, para, fit, overall_acc, leak, len(studied), len(heldout)
+    )
+
+
+def _write_performance_artifact(
+    concepts, responses, para, fit, overall_acc, leak, n_studied, n_heldout
+) -> None:
+    """Save the performance artifact + a per-section accuracy SVG for the report."""
+    # per-section held-out accuracy (for the chart)
+    by_section: dict = {}
+    for r in responses:
+        sec = r.section or "?"
+        agg = by_section.setdefault(sec, [0, 0])
+        agg[0] += 1 if r.correct else 0
+        agg[1] += 1
+    section_items = [
+        (sec, corr / tot) for sec, (corr, tot) in sorted(by_section.items()) if tot
+    ]
+    # Per-section accuracy WITH the item count (n), so the offline score mapping can
+    # compute the same Wilson bounds the live engine uses (not a ballpark stand-in).
+    per_section = {
+        sec: {"accuracy": corr / tot, "correct": corr, "n": tot}
+        for sec, (corr, tot) in sorted(by_section.items())
+        if tot
+    }
+    if section_items:
+        svg = _artifacts.bar_svg(
+            section_items,
+            title="Held-out performance accuracy by section",
+            subtitle="SIMULATED responses (exercises the pipeline; not real answers)",
+            ymax=1.0,
+        )
+        _artifacts.write_svg("performance", svg)
+
+    g = fit["gate"]
+    _artifacts.write_artifact(
+        "performance",
+        {
+            "title": "Performance model on held-out exam-style items",
+            "spec": "spec 7d / 7e / section 9 Step 2",
+            "command": "just eval  (eval_performance.py)",
+            "model": "logistic P(correct); responses SIMULATED (labelled)",
+            "seed": SEED,
+            "summary": [
+                f"Held-out accuracy on {len(responses)} reworded items: "
+                f"**{overall_acc:.1%}** (Brier {fit['brier']:.3f}; lower = better calibrated).",
+                f"Paraphrase test (7d): mean card recall {para.mean_recall:.1%} vs reworded "
+                f"accuracy {para.mean_accuracy:.1%} -> gap **{para.mean_gap:+.1%}** "
+                f"(recall and performance are not identical, so performance is not a copy "
+                f"of memory).",
+                f"Incremental-validity gate (SPOV 3): out-of-sample AUC full model "
+                f"{g['auc_full']:.3f} vs recall-only {g['auc_recall']:.3f}, delta "
+                f"**{g['delta']:+.3f}** (need >= {g['min_delta']:.2f}), n={g['n']} -> "
+                f"{'PASS' if g['passes'] else 'FAIL'}.",
+                f"Leakage (7e): {n_studied} studied texts vs {n_heldout} held-out items, "
+                f"max shingle overlap {leak.max_overlap:.2f} "
+                f"(threshold {perf.LEAKAGE_THRESHOLD}) -> "
+                f"{'CLEAN' if leak.clean else 'LEAK'} (real texts).",
+            ],
+            "table": {
+                "headers": ["Metric", "Value", "Bar / need"],
+                "rows": [
+                    ["held-out accuracy", f"{overall_acc:.1%}", ""],
+                    ["Brier", f"{fit['brier']:.3f}", "lower better"],
+                    ["AUC full vs recall", f"{g['auc_full']:.3f} vs {g['auc_recall']:.3f}",
+                     f"delta {g['delta']:+.3f}"],
+                    ["incremental-validity gate", "PASS" if g["passes"] else "FAIL",
+                     f">= {g['min_delta']:.2f}, n>={g['min_responses']}"],
+                    ["leakage", "CLEAN" if leak.clean else "LEAK", f"overlap {leak.max_overlap:.2f}"],
+                ],
+            },
+            "metrics": {
+                "accuracy": overall_acc,
+                "brier": fit["brier"],
+                "gate": g,
+                "paraphrase_gap": para.mean_gap,
+                "leakage_clean": leak.clean,
+                "leakage_max_overlap": leak.max_overlap,
+                "n_responses": len(responses),
+                "per_section_accuracy": {s: v for s, v in section_items},
+                "per_section": per_section,
+            },
+            "chart": "performance.svg" if section_items else None,
+            "verdict": ("PASS - Performance may ship" if g["passes"]
+                        else "ABSTAIN - gate not cleared"),
+            "nulls": [
+                "The accuracy/Brier here are on SIMULATED responses (planted latent skill) "
+                "to exercise the pipeline; they are NOT measured on real student answers. "
+                "On a fresh real deck the engine's Performance score abstains until >= 5 "
+                "graded items per section exist.",
+                f"The memory->performance gap is small ({para.mean_gap:+.1%}): recall only "
+                "modestly overstates performance on this synthetic set, so the case that "
+                "performance is a distinct construct is suggestive here, not decisive.",
+            ],
+        },
+    )
+    print("wrote artifact: docs/eval-artifacts/performance.json"
+          + (" + performance.svg" if section_items else ""))
 
 
 if __name__ == "__main__":

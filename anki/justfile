@@ -180,19 +180,34 @@ bench:
     {{ pyenv_python }} testdeck/build_bench_deck.py --out testdeck/bench.anki2 --skip-if-exists
     {{ pyenv_python }} testdeck/bench.py --col testdeck/bench.anki2
 
-# Speedrun honesty evals: calibration (9.1), performance (7d/7e), AI classifier (7e), AI card check (7f)
+# Speedrun honesty evals: calibration (9.1), performance (7d/7e), score mapping, AI classifier
+# (7e) + card check (7f), leakage (7e), prompt-injection red-team, ablation (8); writes JSON
+# artifacts to docs/eval-artifacts/ and regenerates docs/eval-results.md from them.
 eval:
     {{ ninja }} pylib qt
     {{ pyenv_python }} testdeck/build_bench_deck.py --out testdeck/bench.anki2 --skip-if-exists
     {{ pyenv_python }} testdeck/calibration.py --col testdeck/bench.anki2
     {{ pyenv_python }} testdeck/eval_performance.py
+    {{ pyenv_python }} testdeck/score_mapping.py
     {{ pyenv_python }} testdeck/run_ai_eval.py
     {{ pyenv_python }} testdeck/run_ai_card_check.py
+    {{ pyenv_python }} testdeck/run_leakage_check.py
+    {{ pyenv_python }} testdeck/run_injection_redteam.py
+    {{ pyenv_python }} testdeck/run_ablation.py
+    {{ pyenv_python }} testdeck/run_disconfirmer_ablation.py
+    {{ pyenv_python }} testdeck/build_report.py
+    {{ pyenv_python }} testdeck/build_evidence_json.py
 
 # Speedrun crash + offline resilience (spec 7g)
 crash-test:
     {{ ninja }} pylib qt
     {{ pyenv_python }} testdeck/crash_test.py
+
+# Speedrun two-way sync test (spec 7b): bundled sync server + two collections, offline
+# merge (10+10, none lost/doubled) and same-card last-writer-wins, on one machine.
+sync-test:
+    {{ ninja }} pylib qt
+    {{ pyenv_python }} testdeck/sync_test.py
 
 # Remove build outputs from out/ (pass keep-env to keep node_modules/pyenv); macOS/Linux
 clean *args:

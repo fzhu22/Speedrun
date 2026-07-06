@@ -83,7 +83,9 @@ from aqt.webview import AnkiWebView, AnkiWebViewKind
 install_pylib_legacy()
 
 MainWindowState = Literal[
-    "startup", "deckBrowser", "overview", "review", "resetRequired", "profileManager"
+    "startup", "deckBrowser", "overview", "review", "resetRequired", "profileManager",
+    # Speedrun: the dashboard rendered as the app's home screen (see _speedrunState).
+    "speedrun",
 ]
 
 
@@ -662,7 +664,11 @@ class AnkiQt(QMainWindow):
             self.update_undo_actions()
             gui_hooks.collection_did_load(self.col)
             self.apply_collection_options()
-            self.moveToState("deckBrowser")
+            # Speedrun: land on the Speedrun dashboard as the home screen (reversible via
+            # the `speedrun_home` collection config); Anki's deck list is one tap away.
+            self.moveToState(
+                "speedrun" if self.col.get_config("speedrun_home", True) else "deckBrowser"
+            )
         except Exception:
             # dump error to stderr so it gets picked up by errors.py
             traceback.print_exc()
@@ -772,6 +778,40 @@ class AnkiQt(QMainWindow):
     def _deckBrowserState(self, oldState: MainWindowState) -> None:
         self.deckBrowser.show()
 
+    def _speedrunState(self, oldState: MainWindowState) -> None:
+        # Speedrun home: render the shared dashboard in its own SPEEDRUN-kind webview.
+        # That kind is what grants the page backend-API access - mw.web is MAIN and would
+        # 403 on the dashboard RPC - so we swap it in for mw.web while on this screen.
+        # Anki's deck list stays one tap away via the dashboard's "Decks" button.
+        if getattr(self, "speedrunWeb", None) is None:
+            self.speedrunWeb = AnkiWebView(self, kind=AnkiWebViewKind.SPEEDRUN)
+            self.mainLayout.addWidget(self.speedrunWeb)
+        self.web.hide()
+        self.bottomWeb.hide()
+        self.speedrunWeb.show()
+        self.speedrunWeb.load_sveltekit_page("speedrun")
+        # The reviewer's bottom bar (answer buttons) can re-show itself via a late async
+        # render after we hid it, leaving it stranded above the dashboard. Re-hide the
+        # shared web + bottom bar on the next event-loop turns, but only while still here.
+        def _keep_hidden() -> None:
+            if self.state == "speedrun" and getattr(self, "speedrunWeb", None) is not None:
+                self.web.hide()
+                self.bottomWeb.hide()
+
+        QTimer.singleShot(0, _keep_hidden)
+        QTimer.singleShot(150, _keep_hidden)
+
+    def _speedrunCleanup(self, newState: MainWindowState) -> None:
+        # Restore the shared main/bottom webviews for the other screens.
+        if getattr(self, "speedrunWeb", None) is not None:
+            self.speedrunWeb.hide()
+        # Going into review, keep the shared web + bottom bar hidden until the reviewer
+        # renders the card + answer buttons itself, so the stale deck-browser content in
+        # mw.web doesn't flash on the way in.
+        if newState != "review":
+            self.web.show()
+            self.bottomWeb.show()
+
     def _selectedDeck(self) -> DeckDict | None:
         did = self.col.decks.selected()
         if not self.col.decks.name_if_exists(did):
@@ -811,7 +851,10 @@ class AnkiQt(QMainWindow):
             self.reviewer.cleanup()
             self.toolbarWeb.elevate()
             self.toolbarWeb.show()
-            self.bottomWeb.show()
+            # Speedrun home renders full-screen in its own webview and hides the bottom bar;
+            # showing the reviewer's answer bar here would strand it above the dashboard.
+            if newState != "speedrun":
+                self.bottomWeb.show()
 
     # Resetting state
     ##########################################################################

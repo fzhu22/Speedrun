@@ -1,0 +1,37 @@
+{
+  "name": "crash-test",
+  "generated_at": "2026-07-05T17:34:40+00:00",
+  "git_commit": "c054d5d",
+  "title": "Crash + offline resilience",
+  "spec": "spec 7g / section 10 reliability",
+  "command": "just crash-test  (crash_test.py)",
+  "model": "offline-stub",
+  "summary": [
+    "Crash: 20 hard kills (TerminateProcess) mid-review, each reopened + integrity-checked -> **20/20 collections intact** (PASS). SQLite journalling recovers cleanly.",
+    "Offline / AI-off: no fabrication (generate=[]), deterministic template fallbacks with provenance, broken/garbage AI output handled safely, and the dashboard still returns a score -> ALL OK."
+  ],
+  "table": {
+    "headers": [
+      "Check",
+      "Result"
+    ],
+    "rows": [
+      [
+        "crash (20x kill, reopen + integrity)",
+        "20/20 intact"
+      ],
+      [
+        "offline / AI-off",
+        "PASS"
+      ]
+    ]
+  },
+  "metrics": {
+    "crash_intact": 20,
+    "crash_total": 20,
+    "crash_pass": true,
+    "offline_pass": true
+  },
+  "verdict": "PASS",
+  "nulls": []
+}

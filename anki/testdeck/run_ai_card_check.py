@@ -33,7 +33,10 @@ _HERE = Path(__file__).resolve().parent
 _ANKI = _HERE.parent
 os.chdir(_ANKI)
 sys.path[:0] = ["pylib", "qt", "out/pylib", "out/qt"]
+if str(_HERE) not in sys.path:
+    sys.path.insert(0, str(_HERE))
 
+import _artifacts  # noqa: E402
 from anki.speedrun import ai, ai_items  # noqa: E402
 from anki.speedrun.performance import LEAKAGE_THRESHOLD, leakage_check  # noqa: E402
 
@@ -63,6 +66,29 @@ def main() -> None:
     if not key:
         print("AI OFF -> generator makes no cards (no fabrication); check NOT RUN.")
         print("Configure SPEEDRUN_AI_KEY or the proxy token to run the real check.")
+        _artifacts.write_artifact(
+            "ai-card-check",
+            {
+                "title": "AI card check (generate from a cited source, then verify)",
+                "spec": "spec 7f",
+                "command": "just eval  (run_ai_card_check.py; needs an api-key)",
+                "model": _artifacts.OFFLINE_MODEL,
+                "summary": [
+                    "AI OFF (no api-key configured): the generator makes no cards (no "
+                    "fabrication), so the 7f check is NOT RUN. This is the correct AI-off "
+                    "behaviour; configure an api-key and re-run to record the counts.",
+                    f"Pre-registered cutoff (unchanged): wrong <= {CUTOFF_MAX_WRONG} AND "
+                    f"correct+useful >= {CUTOFF_MIN_USEFUL_FRACTION:.0%} of generated.",
+                ],
+                "metrics": {"status": "not_run_ai_off", "gold_items": len(gold)},
+                "verdict": "NOT RUN (AI off)",
+                "nulls": [
+                    "The 7f card check requires the real model; with no key it does not run "
+                    "(and correctly generates nothing rather than fabricating cards)."
+                ],
+            },
+        )
+        print("wrote artifact: docs/eval-artifacts/ai-card-check.json (status: not run)")
         return
     client = ai.OpenAICompatibleClient(
         base_url=ai.base_url(), model=ai._DEFAULTS["model"], api_key=key, timeout=180
@@ -134,6 +160,60 @@ def main() -> None:
         for b in correct_bad[:3]:
             print(f"    - {b['stem'][:80]}  <- {', '.join(b['problems'])[:80]}")
     print()
+
+    nulls = []
+    if n_wrong:
+        nulls.append(
+            f"{n_wrong} generated card(s) were WRONG (unsupported by the source) and "
+            "BLOCKED - a wrong fact is worse than no card, and one failure fails the batch."
+        )
+    if n_bad:
+        nulls.append(
+            f"{n_bad} card(s) were correct but bad teaching (vague/trivial/duplicate/leak) "
+            "and BLOCKED."
+        )
+    _artifacts.write_artifact(
+        "ai-card-check",
+        {
+            "title": "AI card check (generate from a cited source, then verify)",
+            "spec": "spec 7f",
+            "command": "just eval  (run_ai_card_check.py)",
+            "model": ai._DEFAULTS["model"],
+            "summary": [
+                f"Generated {n} MC items from one cited source; gold set {len(gold)} Q/A.",
+                f"Pre-registered cutoff: wrong <= {CUTOFF_MAX_WRONG} AND correct+useful "
+                f">= {CUTOFF_MIN_USEFUL_FRACTION:.0%} of generated.",
+                f"correct+useful (kept) **{n_useful}** ({useful_fraction:.0%}); "
+                f"wrong (blocked) **{n_wrong}**; correct-but-bad/duplicate (blocked) "
+                f"**{n_bad}**; malformed {n_malformed}.",
+                f"Cutoff -> **{'PASS' if passes else 'FAIL'}**.",
+            ],
+            "table": {
+                "headers": ["Count", "Value"],
+                "rows": [
+                    ["generated", n],
+                    ["correct + useful (kept)", f"{n_useful} ({useful_fraction:.0%})"],
+                    ["wrong (blocked)", n_wrong],
+                    ["correct but bad / duplicate (blocked)", n_bad],
+                    ["malformed (blocked)", n_malformed],
+                ],
+            },
+            "metrics": {
+                "generated": n,
+                "useful": n_useful,
+                "wrong": n_wrong,
+                "bad": n_bad,
+                "malformed": n_malformed,
+                "useful_fraction": useful_fraction,
+                "cutoff_max_wrong": CUTOFF_MAX_WRONG,
+                "cutoff_min_useful": CUTOFF_MIN_USEFUL_FRACTION,
+                "passes": passes,
+            },
+            "verdict": f"{'PASS' if passes else 'FAIL'}",
+            "nulls": nulls,
+        },
+    )
+    print("wrote artifact: docs/eval-artifacts/ai-card-check.json")
 
 
 if __name__ == "__main__":

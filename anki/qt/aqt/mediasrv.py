@@ -705,8 +705,85 @@ def save_custom_colours() -> bytes:
     return b""
 
 
+# Locations captured at IMPORT time (before Anki chdir's into the collection.media folder,
+# which would otherwise break cwd/relative-__file__ resolution later).
+_MEDIASRV_DIR = os.path.dirname(os.path.abspath(__file__))
+_MEDIASRV_IMPORT_CWD = os.getcwd()
+
+
+def speedrun_evidence() -> bytes:
+    """Return the Speedrun eval artifacts (docs/eval-artifacts/*.json) as one JSON blob,
+    with any referenced SVG chart inlined, so the in-app Evidence view can render the same
+    numbers as docs/eval-results.md. Dev/demo feature: if the artifacts folder is absent
+    (e.g. a packaged build), returns ``available: false``."""
+    import json as _json
+    from pathlib import Path as _Path
+
+    # Walk up from several bases (module dir, import-time cwd, current cwd) to the repo
+    # root, looking for docs/eval-artifacts. Robust to Anki's chdir and relative __file__.
+    art_dir = None
+    seen: set = set()
+    for b in (_MEDIASRV_DIR, _MEDIASRV_IMPORT_CWD, os.getcwd()):
+        try:
+            start = _Path(b).resolve()
+        except Exception:
+            continue
+        for ancestor in [start, *start.parents]:
+            cand = ancestor / "docs" / "eval-artifacts"
+            if str(cand) in seen:
+                continue
+            seen.add(str(cand))
+            if cand.is_dir():
+                art_dir = cand
+                break
+        if art_dir is not None:
+            break
+    order = [
+        "speed-bench", "memory-calibration", "performance", "score-mapping", "ai-eval",
+        "ai-card-check", "leakage", "injection-redteam", "ablation", "ablation-disconfirmer",
+        "crash-test", "sync-test",
+    ]
+    artifacts: list = []
+    if art_dir is not None:
+        loaded: dict = {}
+        for p in art_dir.glob("*.json"):
+            try:
+                loaded[p.stem] = _json.loads(p.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        for name in sorted(
+            loaded, key=lambda n: (order.index(n) if n in order else len(order), n)
+        ):
+            a = loaded[name]
+            chart = a.get("chart")
+            if chart:
+                svg_path = art_dir / chart
+                if svg_path.exists():
+                    try:
+                        a = {**a, "chart_svg": svg_path.read_text(encoding="utf-8")}
+                    except Exception:
+                        pass
+            artifacts.append(a)
+    standing_nulls = [
+        "The feature->MCAT-score link is observational, not proven (the Anki-to-exam "
+        "literature is non-randomized; the one applied study is null - Wothe et al., Step 2 "
+        "CK, p=0.440). Everything here grades the bridge steps, never a validated exam gain.",
+        "Per-family fading (SPOV 6) is a bet: a large field RCT reversed it for high-ability "
+        "learners, so it is instrumented with a disable-if-fixed-wins rule.",
+        "The readiness score mapping is an unvalidated display-layer index (real-score "
+        "anchoring is section 9 Step 4, out of scope).",
+    ]
+    payload = {
+        "available": art_dir is not None,
+        "artifacts": artifacts,
+        "standing_nulls": standing_nulls,
+    }
+    return _json.dumps(payload).encode("utf-8")
+
+
 post_handler_list = [
     congrats_info,
+    speedrun_evidence,
     get_deck_configs_for_update,
     update_deck_configs,
     get_scheduling_states_with_context,

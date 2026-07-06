@@ -85,6 +85,16 @@ message SpeedrunDashboardResponse {
     optional float performance_high = 10;
     // Graded held-out items backing the performance estimate (the n).
     uint32 performance_items = 11;
+    // Every content-category leaf in this section, marked covered or not (spec 7c),
+    // in outline order - so the dashboard can show which topics are missing, not
+    // just a section-level percent.
+    repeated TopicCoverage topics = 12;
+  }
+  // One outline leaf topic and whether the deck covers it (has >=1 card for it).
+  message TopicCoverage {
+    string code = 1;
+    string title = 2;
+    bool covered = 3;
   }
   // A single recommended next thing to study.
   message PlanItem {

@@ -1,0 +1,81 @@
+{
+  "name": "sync-test",
+  "generated_at": "2026-07-05T21:03:02+00:00",
+  "git_commit": "c054d5d",
+  "title": "Two-way sync + conflict resolution (offline, then merge)",
+  "spec": "spec 7b",
+  "command": "just sync-test  (sync_test.py)",
+  "model": "offline-stub",
+  "summary": [
+    "Bundled sync server on localhost; two collections (desktop + phone) on one account, seeded identically via full upload/download.",
+    "Merge: 10 reviews on phone + 10 DIFFERENT on desktop, offline; after syncing both, each side holds **20** reviews with none lost and none double-counted (revlog merge is append-by-id).",
+    "Conflict: the same card answered differently on both offline resolves to a deterministic last-writer-wins winner on both devices, and BOTH revlog rows are kept."
+  ],
+  "table": {
+    "headers": [
+      "Check",
+      "Result"
+    ],
+    "rows": [
+      [
+        "desktop first sync asks for a full upload",
+        "PASS"
+      ],
+      [
+        "phone first sync asks for a full download",
+        "PASS"
+      ],
+      [
+        "both devices hold the same cards after seed",
+        "PASS"
+      ],
+      [
+        "desktop recorded 10 reviews offline",
+        "PASS"
+      ],
+      [
+        "phone recorded 10 reviews offline",
+        "PASS"
+      ],
+      [
+        "desktop has all 20 reviews, none doubled",
+        "PASS"
+      ],
+      [
+        "phone has all 20 reviews, none doubled",
+        "PASS"
+      ],
+      [
+        "the merge was a normal two-way sync (no forced full sync)",
+        "PASS"
+      ],
+      [
+        "same-card conflict resolved by a normal sync (object-level merge)",
+        "PASS"
+      ],
+      [
+        "both revlog rows for the conflicted card are kept (none dropped)",
+        "PASS"
+      ],
+      [
+        "last-writer-wins: the later desktop review wins on BOTH devices",
+        "PASS"
+      ]
+    ]
+  },
+  "metrics": {
+    "checks_total": 11,
+    "checks_passed": 11,
+    "all_pass": true,
+    "cards_each": 24,
+    "desktop_revlog": 20,
+    "phone_revlog": 20,
+    "merge_required_code": 0,
+    "conflict_required_code": 0
+  },
+  "verdict": "PASS - two-way sync merges cleanly; conflict has a clear winner",
+  "nulls": [
+    "A plain review divergence (same card, different answers) is resolved by Anki's object-level last-writer-wins merge, NOT the forced Upload/Download full sync - that only triggers on a schema divergence (e.g. a notetype change on both sides). Both revlog rows are always kept, so no review is ever lost or double-counted.",
+    "This runs two collections on one machine against the bundled server; it proves the engine's sync/merge, not device-specific transport (which the phone build exercises over the same protocol)."
+  ]
+}

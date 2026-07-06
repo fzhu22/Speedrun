@@ -246,6 +246,8 @@
     <string name="dev_card_browser_search_view">cardBrowserSearchView</string>
     <string name="dev_bottom_nav_key">devBottomNav</string>
     <string name="dev_open_tts_voices">openTtsVoices</string>
+    <!-- Speedrun: land on the Speedrun dashboard on cold start (default on, reversible). -->
+    <string name="speedrun_home_on_start_key">speedrunHomeOnStart</string>
     <!-- Developer options > Create fake notes -->
     <string name="pref_fill_default_deck_number_key">FillDefaultNumberDeck</string>
     <string name="pref_fill_default_deck_key">FillDefaultDeck</string>

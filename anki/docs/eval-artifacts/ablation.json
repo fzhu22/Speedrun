@@ -1,0 +1,86 @@
+{
+  "name": "ablation",
+  "generated_at": "2026-07-05T17:26:48+00:00",
+  "git_commit": "c054d5d",
+  "title": "Study-feature ablation: pretest-first (3 builds, equal time)",
+  "spec": "spec section 8 (SIMULATED learners)",
+  "command": "just eval  (run_ablation.py)",
+  "model": "offline-stub",
+  "seed": 7,
+  "summary": [
+    "Feature under test: **pretest-first cards** (SPOV 2).",
+    "Pre-registered hypothesis: Introducing new material with a forced guess + immediate feedback (pretest-first) raises delayed accuracy on the PRETESTED items at equal study time, versus seeing the same cards study-first, with roughly zero spillover to untested same-topic items.",
+    "Primary metric: **delayed accuracy on held-out PRETESTED items, at equal study time**. Failure condition: If full <= feature-off on the pretested items at equal time (CI overlap), the pretest feature earns nothing here; if it also lifts untested items equally, the item-specific claim is wrong.",
+    "On pretested items: full app **68.5%** vs feature-off **55.7%** vs plain Anki **54.8%** (full vs feature-off d=+0.71).",
+    "Three arms at EQUAL study time; bootstrap 95% CIs shown; SIMULATED learners (labelled) - a harness demonstration, not a real-student result."
+  ],
+  "table": {
+    "headers": [
+      "Arm",
+      "Pretested acc",
+      "95% CI"
+    ],
+    "rows": [
+      [
+        "plain Anki",
+        "54.8%",
+        "50.9%-58.6%"
+      ],
+      [
+        "feature-off",
+        "55.7%",
+        "51.7%-59.7%"
+      ],
+      [
+        "full app",
+        "68.5%",
+        "64.7%-72.4%"
+      ]
+    ]
+  },
+  "metrics": {
+    "feature": "pretest-first",
+    "hypothesis": "Introducing new material with a forced guess + immediate feedback (pretest-first) raises delayed accuracy on the PRETESTED items at equal study time, versus seeing the same cards study-first, with roughly zero spillover to untested same-topic items.",
+    "primary_metric": "delayed accuracy on held-out PRETESTED items, at equal study time",
+    "failure_condition": "If full <= feature-off on the pretested items at equal time (CI overlap), the pretest feature earns nothing here; if it also lifts untested items equally, the item-specific claim is wrong.",
+    "n_students": 80,
+    "arms_pretested_mean": {
+      "plain Anki": 0.5479166666666667,
+      "feature-off": 0.5567708333333333,
+      "full app": 0.6854166666666667
+    },
+    "arms_pretested_ci": {
+      "plain Anki": [
+        0.5088541666666667,
+        0.5864583333333333
+      ],
+      "feature-off": [
+        0.5171875,
+        0.596875
+      ],
+      "full app": [
+        0.646875,
+        0.7239583333333333
+      ]
+    },
+    "d_full_vs_featureoff": 0.7125722229162555,
+    "d_full_vs_plain": 0.7596064850120977,
+    "d_featureoff_vs_plain": 0.048826634788935785,
+    "spillover_d_untested": -0.07361248265822853,
+    "fading_low_ability_delta": 0.06818992291103688,
+    "fading_high_ability_delta": -0.021936352270369896,
+    "planted_effects": {
+      "w_review": 0.4,
+      "w_other": 0.15,
+      "w_pretest": 0.55,
+      "w_spillover": 0.0
+    }
+  },
+  "chart": "ablation.svg",
+  "verdict": "full 68.5% vs feature-off 55.7% on pretested items (d=+0.71); SIMULATED",
+  "nulls": [
+    "Spillover null (expected): pretest gave ~0 lift on UNTESTED same-topic items (full vs feature-off d=-0.07) - the benefit is item-specific, not a general topic boost.",
+    "Fading (SPOV 6) reverses for high-ability learners (delta -2.2% vs +6.8% for low-ability) - the MCAT population is high-prior, so fading is kept as a bet with a 'disable if fixed wins for high-ability' rule, not shipped as a proven win.",
+    "ALL numbers here are SIMULATED with planted effects (labelled). They demonstrate the harness and a fair comparison; they are NOT evidence the feature helps real students - that needs a real equal-time trial on unseen MCAT-style items."
+  ]
+}

@@ -132,18 +132,35 @@ two-way: review on either device, sync, and the other catches up.
 
 ### Conflict rule (important)
 
-Anki does not auto-merge when both sides changed since the last sync. If you edit
-on both devices without syncing in between, the next sync forces a one-directional
-choice: **Upload** (keep this device's data, overwrite the server) or **Download**
-(take the server's data, overwrite this device). To avoid losing reviews, **sync
-right after each study session** so there is never a two-sided divergence.
+Two cases, and they behave differently:
+
+- **A plain review divergence** - the same card answered differently on each device, with no
+  structural change - is merged automatically at the object level. Anki keeps the review with
+  the later modification time as the card's state (a deterministic last-writer-wins winner)
+  and keeps *both* review-log rows, so no review is ever lost or double-counted. This is the
+  case the automated 7b test exercises.
+- **A schema divergence** - a structural change on both sides since the last sync, e.g. each
+  device adds or removes a notetype - is the only case that cannot be merged. The next sync
+  then forces a one-directional choice: **Upload** (keep this device, overwrite the server)
+  or **Download** (take the server, overwrite this device).
+
+Rule we follow either way: **sync right after each study session** so there is never a
+two-sided divergence to resolve.
 
 ## The sync test (7b)
 
-Spec 7b: prove reviews flow both ways with none lost or double-counted, and that the
-conflict rule picks a clear winner.
+Spec 7b: prove reviews flow both ways with none lost or double-counted, and that a same-card
+conflict resolves to a clear winner.
 
-Procedure:
+Automated (one machine, no second device needed): `just sync-test` starts the bundled sync
+server and drives two collections (desktop + phone) through it - see
+[anki/testdeck/sync_test.py](anki/testdeck/sync_test.py) and the generated `sync-test.json`.
+It asserts: 10 reviews on one side + 10 different on the other merge to **20 distinct revlog
+rows on both** (none lost/doubled), and the same card answered differently on both resolves
+to a deterministic **last-writer-wins** winner on both devices with **both revlog rows
+kept**. Latest run: 11/11 checks pass.
+
+On two real devices, the same procedure:
 
 1. On the desktop, sign in and **Upload** so both devices start from the same collection.
 2. Put the phone offline (airplane mode) and review **10 cards**.
@@ -151,11 +168,10 @@ Procedure:
 4. Reconnect and **Sync** both. All 20 reviews land in one collection - none lost, none
    counted twice (compare the review count in Stats before and after).
 
-Conflict case: review the **same** card on both devices while offline, then Sync. Anki
-does not auto-merge a two-sided change - the next Sync forces a one-directional choice,
-**Upload** (keep this device, overwrite the server) or **Download** (take the server,
-overwrite this device). The winner is whichever direction you pick; there is no silent
-merge and no double count.
+Conflict case: review the **same** card on both devices while offline, then Sync. Anki merges
+this automatically - the later review wins the card's state and both review-log rows are kept
+(no double count). A forced Upload/Download choice only happens if both devices also made a
+*structural* change (a notetype edit) since the last sync.
 
 Rule we follow: sync right after each study session on each device, so there is never a
 two-sided divergence. Server health: `GET https://speedrun-sync-frank-1vls.fly.dev/health`

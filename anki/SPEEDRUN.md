@@ -94,10 +94,21 @@ The following are tracked deliverables (see the spec in
       yet), and readiness (abstains below the coverage/review give-up line).
 - [x] The phone companion sharing the engine, with two-way sync (self-hosted
       `anki-sync-server`; see [../SYNC.md](../SYNC.md)).
-- [x] Held-out evaluation with real numbers - memory calibration (FSRS log_loss / RMSE on
-      held-back reviews), the paraphrase gap, leakage, the AI classifier + AI card check, a
-      50k-card speed/memory benchmark, and the crash/offline + prompt-injection tests. See
-      [docs/eval-results.md](./docs/eval-results.md); reproduce with `just bench`, `just eval`,
-      `just crash-test`.
-- [ ] The study-feature ablation as a full three-version A/B with real learners (the toggles
-      and engine gates exist and are tested; the comparative run needs learners/time).
+- [x] Held-out evaluation with real numbers, saved as re-runnable JSON + SVG artifacts in
+      [docs/eval-artifacts/](./docs/eval-artifacts/) and rendered into
+      [docs/eval-results.md](./docs/eval-results.md) by `testdeck/build_report.py` (so the
+      report numbers are generated, not hand-typed): memory calibration (FSRS log_loss / RMSE
+      on held-back reviews **+ a reliability-diagram chart + Brier**), the paraphrase gap,
+      performance accuracy, the score mapping (with a range), leakage, the AI classifier +
+      card check with the baseline comparison, a 50k-card speed/memory benchmark, and the
+      crash/offline tests. Reproduce with `just eval`, `just bench`, `just crash-test`.
+- [x] Prompt-injection red-team ([testdeck/run_injection_redteam.py](./testdeck/run_injection_redteam.py)):
+      override-phrase / HTML / zero-width / poisoned-passage attacks are detected + neutralised,
+      a gullible stub leaks only when called undefended, and the shared Rust AI lane
+      ([rslib/src/speedrun/ai.rs](./rslib/src/speedrun/ai.rs)) now sanitises inputs + frames
+      them as untrusted DATA (the hard-coded proxy token was moved to an env var).
+- [x] The study-feature ablation as a three-build (full / feature-off / plain Anki) equal-time
+      comparison with a pre-registered primary metric, a range, and honest nulls, on
+      **simulated learners** ([testdeck/run_ablation.py](./testdeck/run_ablation.py)) - the
+      toggles + engine gates are real; the synthetic run demonstrates the fair test. A real-
+      learner run is still the honest next step (labelled synthetic, not claimed as real).

@@ -242,6 +242,14 @@ open class PrefsRepository(
 
     val exitViaDoubleTapBack by booleanPref(R.string.exit_via_double_tap_back_key, false)
 
+    /**
+     * Speedrun: land on the Speedrun dashboard (readiness, study plan, "Study now") on a cold
+     * start, instead of the deck list. On by default; reversible (mirrors the desktop
+     * `speedrun_home` collection config). The deck list stays one tap away via the dashboard's
+     * "Decks" affordance or the nav drawer.
+     */
+    var openSpeedrunOnStart by booleanPref(R.string.speedrun_home_on_start_key, defaultValue = true)
+
     // ****************************************** Sync ****************************************** //
 
     val isAutoSyncEnabled by booleanPref(R.string.automatic_sync_choice_key, false)

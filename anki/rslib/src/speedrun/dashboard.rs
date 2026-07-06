@@ -22,6 +22,7 @@ use std::collections::HashMap;
 
 use anki_proto::speedrun::speedrun_dashboard_response::PlanItem;
 use anki_proto::speedrun::speedrun_dashboard_response::SectionRow;
+use anki_proto::speedrun::speedrun_dashboard_response::TopicCoverage;
 use anki_proto::speedrun::SpeedrunDashboardRequest;
 use anki_proto::speedrun::SpeedrunDashboardResponse;
 use anki_proto::speedrun::SpeedrunEvidence;
@@ -247,6 +248,15 @@ impl Collection {
                     performance_low: sp.and_then(|p| p.low),
                     performance_high: sp.and_then(|p| p.high),
                     performance_items: sp.map(|p| p.items).unwrap_or(0),
+                    topics: sc
+                        .topics
+                        .iter()
+                        .map(|(code, title, covered)| TopicCoverage {
+                            code: code.to_string(),
+                            title: title.to_string(),
+                            covered: *covered,
+                        })
+                        .collect(),
                 }
             })
             .collect();
@@ -401,6 +411,21 @@ mod test {
         assert_eq!(psych.coverage, 0.0);
         // nothing reviewed yet -> memory abstains
         assert!(bio.memory.is_none());
+
+        // 7c: per-topic coverage is exposed, not just the section percent.
+        assert_eq!(bio.topics.len(), 9, "Bio/Biochem has 9 content-category leaves");
+        let covered: Vec<&str> = bio
+            .topics
+            .iter()
+            .filter(|t| t.covered)
+            .map(|t| t.code.as_str())
+            .collect();
+        assert_eq!(covered, ["1A"], "only the studied leaf 1A is marked covered");
+        assert!(chem.topics.iter().any(|t| t.code == "5E" && t.covered));
+        assert!(
+            psych.topics.iter().all(|t| !t.covered),
+            "no Psych/Soc topic is covered"
+        );
     }
 
     /// (b) Planning surfaces a still-weak prerequisite ahead of its dependent,

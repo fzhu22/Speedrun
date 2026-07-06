@@ -47,6 +47,25 @@ CARD_TYPE_GOLD: List[GoldItem] = [
     ("A solution at pH 3 holds a buffer with pKa 7. Is it effective there?", "No", CardType.APPLICATION),
     ("Two equal resistors end to end - total resistance vs one?", "Double", CardType.APPLICATION),
     ("Substrate far above Km does what to enzyme velocity?", "Approaches Vmax", CardType.APPLICATION),
+    # --- expanded held-out set (still disjoint from FEWSHOT_EXAMPLES) ---
+    # more declarative facts
+    ("What is the pH of pure water at 25C?", "7", CardType.DECLARATIVE),
+    ("What organelle performs photosynthesis?", "Chloroplast", CardType.DECLARATIVE),
+    ("What is the charge of an electron?", "Negative", CardType.DECLARATIVE),
+    ("What molecule carries amino acids to the ribosome?", "tRNA", CardType.DECLARATIVE),
+    ("What is the first product of the citric acid cycle?", "Citrate", CardType.DECLARATIVE),
+    ("What vitamin is ascorbic acid?", "Vitamin C", CardType.DECLARATIVE),
+    ("What is the SI unit of electric current?", "Ampere", CardType.DECLARATIVE),
+    ("What ion is most concentrated inside a resting neuron?", "Potassium", CardType.DECLARATIVE),
+    # more application / reasoning
+    ("Predict the effect of a competitive inhibitor on apparent Km.", "It rises", CardType.APPLICATION),
+    ("If a gas is compressed at constant temperature, what happens to its pressure?", "It rises", CardType.APPLICATION),
+    ("Why does ice float on water?", "Ice is less dense than liquid water", CardType.APPLICATION),
+    ("A weak acid is titrated past its pKa; how does buffering change?", "It weakens", CardType.APPLICATION),
+    ("How does adding a catalyst change the equilibrium constant?", "It does not change it", CardType.APPLICATION),
+    ("If sodium channels are blocked, what happens to the action potential?", "It cannot fire", CardType.APPLICATION),
+    ("Predict the sign of delta G for a spontaneous reaction.", "Negative", CardType.APPLICATION),
+    ("Doubling the distance between two charges does what to the force?", "Quarters it", CardType.APPLICATION),
 ]
 
 
@@ -75,6 +94,59 @@ def make_vector_baseline(prototypes: List[GoldItem]) -> ClassifyFn:
             if sim > best_sim:
                 best_sim, best_type = sim, ptype
         return best_type
+
+    return classify
+
+
+#: A labeled prototype set for the offline reference classifier. Disjoint from both the
+#: few-shot prompt examples and CARD_TYPE_GOLD (so the offline stand-in is not tuned to the
+#: gold it is scored on). These are original, generic Q/A/label triples.
+REFERENCE_PROTOTYPES: List[GoldItem] = [
+    ("What is the powerhouse of the cell?", "Mitochondrion", CardType.DECLARATIVE),
+    ("What gas do plants take in for photosynthesis?", "Carbon dioxide", CardType.DECLARATIVE),
+    ("What is the monomer of a protein?", "Amino acid", CardType.DECLARATIVE),
+    ("What is the charge on a proton?", "Positive", CardType.DECLARATIVE),
+    ("What is the base pair of adenine in DNA?", "Thymine", CardType.DECLARATIVE),
+    ("What organ produces bile?", "Liver", CardType.DECLARATIVE),
+    ("What is the unit of frequency?", "Hertz", CardType.DECLARATIVE),
+    ("What is the most electronegative element?", "Fluorine", CardType.DECLARATIVE),
+    ("Why does sweating cool the body?", "Evaporation removes heat", CardType.APPLICATION),
+    ("Predict the effect of raising temperature on enzyme rate past its optimum.", "Rate falls (denatures)", CardType.APPLICATION),
+    ("How would removing product shift a reversible reaction?", "Toward the products", CardType.APPLICATION),
+    ("If resistance rises at constant voltage, what happens to current?", "It falls", CardType.APPLICATION),
+    ("Explain why oxygen is the final electron acceptor.", "It is highly electronegative", CardType.APPLICATION),
+    ("Compare diffusion rates of a small vs large molecule.", "Small diffuses faster", CardType.APPLICATION),
+    ("What happens to blood pH if breathing slows?", "It falls (acidosis)", CardType.APPLICATION),
+    ("Predict solubility of a nonpolar gas as temperature rises.", "It decreases", CardType.APPLICATION),
+]
+
+
+def reference_classifier() -> ClassifyFn:
+    """A deterministic OFFLINE stand-in for the AI classifier, so the harness (comparison,
+    cutoff, leakage) runs with no key and the report is reproducible. It combines the
+    keyword heuristic with a nearest-labeled-prototype vote over REFERENCE_PROTOTYPES (a
+    richer signal than the 2-shot 'vector' baseline). It is NOT a real LLM and NOT tuned to
+    the gold set; whatever accuracy it earns is reported honestly (offline it may or may not
+    beat the keyword baseline - that is itself an honest result). The decisive AI-beats-a-
+    simpler-method evidence comes from the real model when an api-key is configured."""
+    from anki.speedrun.cardtype import heuristic_classify
+
+    nn = make_vector_baseline(REFERENCE_PROTOTYPES)
+    proto_vecs = [(bag_of_words(f"{q} {a}"), t) for q, a, t in REFERENCE_PROTOTYPES]
+
+    def classify(question: str, answer: str = "") -> CardType:
+        vec = bag_of_words(f"{question} {answer}")
+        best_sim = max((cosine(vec, pv) for pv, _t in proto_vecs), default=0.0)
+        heur = heuristic_classify(question, answer)
+        # Trust the prototype vote only when it is a confident match; otherwise the cue
+        # heuristic. When either confidently signals application, prefer application (the
+        # costlier miss is suppressing a useful disconfirmer).
+        if best_sim >= 0.5:
+            nn_label = nn(question, answer)
+            if nn_label == CardType.APPLICATION or heur == CardType.APPLICATION:
+                return CardType.APPLICATION
+            return CardType.DECLARATIVE
+        return heur
 
     return classify
 

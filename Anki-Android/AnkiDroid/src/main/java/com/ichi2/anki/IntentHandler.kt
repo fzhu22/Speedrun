@@ -26,6 +26,7 @@ import com.ichi2.anki.dialogs.requireDeckPickerOrShowError
 import com.ichi2.anki.exception.SystemStorageException
 import com.ichi2.anki.libanki.DeckId
 import com.ichi2.anki.noteeditor.NoteEditorLauncher
+import com.ichi2.anki.pages.SpeedrunPage
 import com.ichi2.anki.servicelayer.ScopedStorageService
 import com.ichi2.anki.settings.Prefs
 import com.ichi2.anki.ui.windows.reviewer.ReviewerFragment
@@ -302,6 +303,19 @@ class IntentHandler : AbstractIntentHandler() {
     }
 
     private fun launchDeckPickerIfNoOtherTasks(reloadIntent: Intent) {
+        if (Prefs.openSpeedrunOnStart) {
+            // Speedrun: land on the dashboard, with DeckPicker one Back-press underneath - the
+            // same stacking `handleReviewIntent` uses for the reviewer - so the deck list is
+            // never more than a tap away.
+            Timber.i("Launching Speedrun (home)")
+            TaskStackBuilder
+                .create(applicationContext)
+                .addNextIntent(reloadIntent)
+                .addNextIntent(SpeedrunPage.getIntent(this))
+                .startActivities()
+            finish()
+            return
+        }
         // Launcher intents should start DeckPicker if no other task exists,
         // otherwise go to previous task
         Timber.i("Launching DeckPicker")

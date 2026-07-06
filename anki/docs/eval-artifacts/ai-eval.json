@@ -1,0 +1,57 @@
+{
+  "name": "ai-eval",
+  "generated_at": "2026-07-05T20:23:30+00:00",
+  "git_commit": "c054d5d",
+  "title": "AI card-type classifier: held-out eval + baseline comparison",
+  "spec": "spec 7e / AI gate (evaluate before students see it; beat a baseline)",
+  "command": "just eval  (run_ai_eval.py)",
+  "model": "gpt-4.1-mini",
+  "summary": [
+    "Held-out gold: 37 labeled items (disjoint from the few-shot prompt).",
+    "AI accuracy **86.5%** (wrong-rate 13.5%); keyword baseline 91.9%; vector baseline 59.5%.",
+    "Pre-registered cutoff 80% -> PASS; beats both baselines: no.",
+    "Few-shot <-> gold leakage: CLEAN (the prompt examples are not near-copies of the gold).",
+    "Real model row."
+  ],
+  "table": {
+    "headers": [
+      "Method",
+      "Accuracy",
+      "Note"
+    ],
+    "rows": [
+      [
+        "AI (gpt-4.1-mini)",
+        "86.5%",
+        "wrong-rate 13.5%"
+      ],
+      [
+        "keyword heuristic",
+        "91.9%",
+        "simple baseline"
+      ],
+      [
+        "vector (2-shot NN)",
+        "59.5%",
+        "no-embedding stand-in"
+      ]
+    ]
+  },
+  "metrics": {
+    "n": 37,
+    "ai_accuracy": 0.8648648648648649,
+    "wrong_rate": 0.13513513513513514,
+    "keyword_accuracy": 0.918918918918919,
+    "vector_accuracy": 0.5945945945945946,
+    "cutoff": 0.8,
+    "cutoff_pass": true,
+    "beats_baselines": false,
+    "leakage_clean": true,
+    "ai_is_real": true
+  },
+  "chart": "ai-eval.svg",
+  "verdict": "GATED (real model)",
+  "nulls": [
+    "The AI (86.5%) did NOT beat both baselines (keyword 91.9%, vector 59.5%) this run - the keyword heuristic is already strong, so the gate correctly requires the AI to beat it before it is trusted."
+  ]
+}

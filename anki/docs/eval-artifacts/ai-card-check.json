@@ -1,0 +1,59 @@
+{
+  "name": "ai-card-check",
+  "generated_at": "2026-07-05T20:54:41+00:00",
+  "git_commit": "c054d5d",
+  "title": "AI card check (generate from a cited source, then verify)",
+  "spec": "spec 7f",
+  "command": "just eval  (run_ai_card_check.py)",
+  "model": "gpt-4.1-mini",
+  "summary": [
+    "Generated 54 MC items from one cited source; gold set 50 Q/A.",
+    "Pre-registered cutoff: wrong <= 0 AND correct+useful >= 60% of generated.",
+    "correct+useful (kept) **49** (91%); wrong (blocked) **1**; correct-but-bad/duplicate (blocked) **4**; malformed 0.",
+    "Cutoff -> **FAIL**."
+  ],
+  "table": {
+    "headers": [
+      "Count",
+      "Value"
+    ],
+    "rows": [
+      [
+        "generated",
+        54
+      ],
+      [
+        "correct + useful (kept)",
+        "49 (91%)"
+      ],
+      [
+        "wrong (blocked)",
+        1
+      ],
+      [
+        "correct but bad / duplicate (blocked)",
+        4
+      ],
+      [
+        "malformed (blocked)",
+        0
+      ]
+    ]
+  },
+  "metrics": {
+    "generated": 54,
+    "useful": 49,
+    "wrong": 1,
+    "bad": 4,
+    "malformed": 0,
+    "useful_fraction": 0.9074074074074074,
+    "cutoff_max_wrong": 0,
+    "cutoff_min_useful": 0.6,
+    "passes": false
+  },
+  "verdict": "FAIL",
+  "nulls": [
+    "1 generated card(s) were WRONG (unsupported by the source) and BLOCKED - a wrong fact is worse than no card, and one failure fails the batch.",
+    "4 card(s) were correct but bad teaching (vague/trivial/duplicate/leak) and BLOCKED."
+  ]
+}

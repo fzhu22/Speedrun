@@ -425,4 +425,46 @@ mod test {
         assert_eq!(rung, "L3");
         assert!(!changed);
     }
+
+    /// (e) Undo reverts the write path. `speedrun_record_review` writes the fading
+    /// config entry AND the rung tag inside one `transact(Op::UpdateNote)`; a single
+    /// `col.undo()` must revert both, so the shared engine's undo guarantee holds for
+    /// the fading write (the collection is never left half-updated).
+    #[test]
+    fn record_review_undo_reverts() {
+        let mut col = Collection::new();
+        let cid = add_card(
+            &mut col,
+            "Why does raising the pH shift the equilibrium?",
+            "The conjugate base is favoured across the buffer region.",
+            &["MCAT::BioBiochem::1A::AminoAcids", "speedrun_transfer"],
+        );
+
+        // One review writes the ladder state for family "1A" and the rung tag.
+        let r = col.speedrun_record_review(req(cid, 3)).unwrap();
+        assert_eq!(r.family, "1A");
+        assert_eq!(r.rung, "L3");
+        assert_eq!(
+            fading_cfg(&col)
+                .get("1A")
+                .and_then(|e| e.get("rung"))
+                .and_then(Value::as_str),
+            Some("L3"),
+        );
+        assert!(note_tags(&mut col, cid).iter().any(|t| t == "speedrun_rung::L3"));
+
+        // A single undo reverts BOTH writes: the config entry (an "added" change from a
+        // fresh collection -> removed) and the note tag (restored to the original tags).
+        col.undo().unwrap();
+        assert!(
+            fading_cfg(&col).get("1A").is_none(),
+            "undo must remove the fading config entry it added",
+        );
+        assert!(
+            !note_tags(&mut col, cid)
+                .iter()
+                .any(|t| t.starts_with("speedrun_rung::")),
+            "undo must remove the rung tag it wrote",
+        );
+    }
 }

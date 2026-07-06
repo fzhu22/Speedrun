@@ -1,0 +1,45 @@
+{
+  "name": "leakage",
+  "generated_at": "2026-07-05T20:42:40+00:00",
+  "git_commit": "c054d5d",
+  "title": "Leakage check: training vs held-out test items",
+  "spec": "spec 7e",
+  "command": "just eval  (run_leakage_check.py)",
+  "model": "offline-stub",
+  "summary": [
+    "Studied memory set (176 texts) vs held-out reworded items (60): max shingle overlap **0.40** (threshold 0.8) -> **CLEAN**.",
+    "AI few-shot prompt vs classifier gold (37 items): **CLEAN**.",
+    "Runs on the real testdeck texts (no simulation). A clean result is required before any score is trusted."
+  ],
+  "table": {
+    "headers": [
+      "Scan",
+      "Max overlap",
+      "Threshold",
+      "Result"
+    ],
+    "rows": [
+      [
+        "studied vs held-out",
+        "0.40",
+        "0.8",
+        "CLEAN"
+      ],
+      [
+        "few-shot vs gold",
+        "-",
+        "0.80",
+        "CLEAN"
+      ]
+    ]
+  },
+  "metrics": {
+    "studied_vs_heldout_clean": true,
+    "studied_vs_heldout_max_overlap": 0.4,
+    "fewshot_vs_gold_clean": true,
+    "n_studied": 176,
+    "n_heldout": 60
+  },
+  "verdict": "CLEAN",
+  "nulls": []
+}

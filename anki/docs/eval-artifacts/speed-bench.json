@@ -1,0 +1,101 @@
+{
+  "name": "speed-bench",
+  "generated_at": "2026-07-05T17:34:18+00:00",
+  "git_commit": "c054d5d",
+  "title": "Speed + reliability benchmark",
+  "spec": "spec 7h / section 10",
+  "command": "just bench  (bench.py --col testdeck/bench.anki2)",
+  "model": "offline-stub",
+  "summary": [
+    "Engine-call latencies on a **50,800-card** collection (6,755 revlog rows); p50 / p95 / worst reported (never one number).",
+    "Memory (RSS after load + dashboard): **82.9 MB** on 50,800 cards (stated limit < 1500 MB).",
+    "Worst single engine call 425.42 ms (target: nothing freezes >100 ms; dashboard renders off the review path in a webview).",
+    "Sync (< 5 s) is measured manually vs the live server (SYNC.md 7b); these are headless engine-call latencies."
+  ],
+  "table": {
+    "headers": [
+      "Action",
+      "p50",
+      "p95",
+      "worst",
+      "target (p95)",
+      "verdict"
+    ],
+    "rows": [
+      [
+        "Button press (answer_card)",
+        "0.90 ms",
+        "1.57 ms",
+        "34.71 ms",
+        "< 50 ms",
+        "PASS"
+      ],
+      [
+        "Next card (get_queued_cards)",
+        "0.08 ms",
+        "0.24 ms",
+        "131.05 ms",
+        "< 100 ms",
+        "PASS"
+      ],
+      [
+        "Dashboard refresh",
+        "389.41 ms",
+        "422.22 ms",
+        "425.42 ms",
+        "< 500 ms",
+        "PASS"
+      ],
+      [
+        "Dashboard first load",
+        "184.06 ms",
+        "-",
+        "-",
+        "< 1000 ms",
+        "PASS"
+      ],
+      [
+        "Cold start (open + dashboard)",
+        "202 ms",
+        "222 ms",
+        "222 ms",
+        "< 5000 ms",
+        "PASS"
+      ]
+    ]
+  },
+  "metrics": {
+    "cards": 50800,
+    "revlog_rows": 6755,
+    "rss_mb": 82.89453125,
+    "worst_call_ms": 425.4187000042293,
+    "actions": [
+      {
+        "action": "Button press (answer_card)",
+        "n": 200,
+        "p50_ms": 0.899800012120977,
+        "p95_ms": 1.5681999793741852,
+        "worst_ms": 34.70540000125766
+      },
+      {
+        "action": "Next card (get_queued_cards)",
+        "n": 1000,
+        "p50_ms": 0.08150000940077007,
+        "p95_ms": 0.23629999486729503,
+        "worst_ms": 131.05209998320788
+      },
+      {
+        "action": "Dashboard refresh",
+        "n": 30,
+        "p50_ms": 389.41309999790974,
+        "p95_ms": 422.2193000023253,
+        "worst_ms": 425.4187000042293
+      }
+    ],
+    "dashboard_first_ms": 184.05640000128187,
+    "cold_start_p50_ms": 201.75790000939742,
+    "cold_start_p95_ms": 221.59539998392574
+  },
+  "verdict": "latency targets met on 50,800 cards; RSS 83 MB",
+  "nulls": []
+}
